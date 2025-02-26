@@ -24,9 +24,7 @@ function App() {
               <Route
                 path="/rides"
                 element={
-                  <PrivateRoute>
                     <RidesList />
-                  </PrivateRoute>
                 }
               />
               <Route
