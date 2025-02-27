@@ -12,6 +12,8 @@ import {
   MagnifyingGlassIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
+import GoogleMapPicker from '../components/GoogleMapPicker';
+import LocationSearchBox from '../components/LocationSearchBox';
 
 export default function Rides() {
   const [rides, setRides] = useState([]);
@@ -29,8 +31,12 @@ export default function Rides() {
     pickupLng: '',
     dropoffLat: '',
     dropoffLng: '',
-    maxDistance: '5000' // Default max distance in meters
+    maxDistance: '5000', // Default max distance in meters
+    pickupAddress: '',
+    dropoffAddress: ''
   });
+  const [showPickupMap, setShowPickupMap] = useState(true);
+  const [showDropoffMap, setShowDropoffMap] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +69,9 @@ export default function Rides() {
         return dateA - dateB;
       });
       
+      // Convert coordinates to addresses for each ride
+      await enrichRidesWithAddresses(allRides);
+      
       setRides(allRides);
     } catch (error) {
       console.error('Failed to fetch rides:', error);
@@ -76,6 +85,90 @@ export default function Rides() {
       toast.error(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Convert coordinates to addresses for all rides
+  const enrichRidesWithAddresses = async (rides) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return;
+
+    const geocodePromises = [];
+    
+    // Process each ride's pickup and dropoff locations
+    rides.forEach(ride => {
+      // Process pickup location
+      if (ride.pickupLocation && ride.pickupLocation.coordinates && 
+          Array.isArray(ride.pickupLocation.coordinates) && 
+          !ride.pickupLocation.address) {
+        
+        const [lng, lat] = ride.pickupLocation.coordinates;
+        
+        if (lat && lng) {
+          const promise = fetchAddressFromCoordinates(lat, lng)
+            .then(address => {
+              if (address) {
+                if (!ride.pickupLocation.address) {
+                  ride.pickupLocation.address = address;
+                }
+              }
+            })
+            .catch(err => console.error('Error getting pickup address:', err));
+          
+          geocodePromises.push(promise);
+        }
+      }
+      
+      // Process dropoff location
+      if (ride.dropoffLocation && ride.dropoffLocation.coordinates && 
+          Array.isArray(ride.dropoffLocation.coordinates) && 
+          !ride.dropoffLocation.address) {
+        
+        const [lng, lat] = ride.dropoffLocation.coordinates;
+        
+        if (lat && lng) {
+          const promise = fetchAddressFromCoordinates(lat, lng)
+            .then(address => {
+              if (address) {
+                if (!ride.dropoffLocation.address) {
+                  ride.dropoffLocation.address = address;
+                }
+              }
+            })
+            .catch(err => console.error('Error getting dropoff address:', err));
+          
+          geocodePromises.push(promise);
+        }
+      }
+    });
+    
+    // Wait for all geocoding operations to complete
+    try {
+      await Promise.all(geocodePromises);
+    } catch (error) {
+      console.error('Error enriching rides with addresses:', error);
+    }
+  };
+
+  // Helper function to get address from coordinates using Google Maps Geocoding API
+  const fetchAddressFromCoordinates = async (lat, lng) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return null;
+    
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+      );
+      
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        return data.results[0].formatted_address;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching address:', error);
+      return null;
     }
   };
 
@@ -101,14 +194,19 @@ export default function Rides() {
         setSearchLoading(true);
         setError(null);
         
-        // Use the bestRides endpoint for location-based search
-        const response = await ridesApi.getBestMatches({
+        // Prepare search data with addresses if available
+        const searchData = {
           pickupLat: parseFloat(filters.pickupLat),
           pickupLng: parseFloat(filters.pickupLng),
           dropoffLat: parseFloat(filters.dropoffLat),
           dropoffLng: parseFloat(filters.dropoffLng),
-          maxDistance: parseInt(filters.maxDistance)
-        });
+          maxDistance: parseInt(filters.maxDistance),
+          pickupAddress: filters.pickupAddress,
+          dropoffAddress: filters.dropoffAddress
+        };
+        
+        // Use the bestRides endpoint for location-based search
+        const response = await ridesApi.getBestMatches(searchData);
         
         console.log('Best matching rides response:', response);
         
@@ -118,6 +216,9 @@ export default function Rides() {
         } else if (response.data && Array.isArray(response.data)) {
           bestRides = response.data;
         }
+
+        // Convert coordinates to addresses for the matching rides
+        await enrichRidesWithAddresses(bestRides);
         
         setRides(bestRides);
         toast.success(`Found ${bestRides.length} matching rides`);
@@ -161,6 +262,7 @@ export default function Rides() {
               pickupLat: latitude.toString(),
               pickupLng: longitude.toString(),
             }));
+            setShowPickupMap(true);
             toast.dismiss(loadingToast);
             toast.success('Pickup location set to your current location');
           } else if (type === 'dropoff') {
@@ -169,9 +271,13 @@ export default function Rides() {
               dropoffLat: latitude.toString(),
               dropoffLng: longitude.toString(),
             }));
+            setShowDropoffMap(true);
             toast.dismiss(loadingToast);
             toast.success('Dropoff location set to your current location');
           }
+
+          // Try to get the address using reverse geocoding
+          fetchAddressForCurrentLocation(latitude, longitude, type);
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -185,8 +291,123 @@ export default function Rides() {
     }
   };
 
+  // Specialized helper function for current location address lookup
+  const fetchAddressForCurrentLocation = async (lat, lng, type) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return;
+    
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+      );
+      
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const address = data.results[0].formatted_address;
+        
+        if (type === 'pickup') {
+          setFilters(prev => ({
+            ...prev,
+            pickupAddress: address
+          }));
+        } else if (type === 'dropoff') {
+          setFilters(prev => ({
+            ...prev,
+            dropoffAddress: address
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching address:', error);
+    }
+  };
+
   const openGoogleMaps = (type) => {
-    window.open('https://www.google.com/maps', '_blank');
+    // Toggle map visibility instead of always showing
+    if (type === 'pickup') {
+      // If pickup map is already showing, toggle it off
+      if (showPickupMap) {
+        setShowPickupMap(false);
+      } else {
+        // Always show the map on the current page, don't open in new tab
+        setShowPickupMap(true);
+        
+        // Show a hint to the user if opening map without coordinates
+        if (!filters.pickupLat || !filters.pickupLng) {
+          toast.info('Please select a pickup location on the map or use your current location.');
+        }
+      }
+    } else {
+      // If dropoff map is already showing, toggle it off
+      if (showDropoffMap) {
+        setShowDropoffMap(false);
+      } else {
+        // Always show the map on the current page, don't open in new tab
+        setShowDropoffMap(true);
+        
+        // Show a hint to the user if opening map without coordinates
+        if (!filters.dropoffLat || !filters.dropoffLng) {
+          toast.info('Please select a dropoff location on the map or use your current location.');
+        }
+      }
+    }
+  };
+
+  // Handle location selection from map or search
+  const handleLocationSelect = async (location, type) => {
+    // Update coordinates immediately
+    if (type === 'pickup') {
+      setFilters(prev => ({
+        ...prev,
+        pickupLat: location.lat.toString(),
+        pickupLng: location.lng.toString(),
+        // Keep existing address if one was provided (e.g., from search)
+        pickupAddress: location.address || prev.pickupAddress
+      }));
+    } else if (type === 'dropoff') {
+      setFilters(prev => ({
+        ...prev,
+        dropoffLat: location.lat.toString(),
+        dropoffLng: location.lng.toString(),
+        // Keep existing address if one was provided (e.g., from search)
+        dropoffAddress: location.address || prev.dropoffAddress
+      }));
+    }
+    
+    // If no address was provided (e.g., from map click), fetch it
+    if (!location.address) {
+      try {
+        // Show loading indicator
+        const loadingToast = toast.loading(`Fetching address for ${type} location...`);
+        
+        // Fetch address from coordinates
+        const address = await fetchAddressFromCoordinates(location.lat, location.lng);
+        
+        // Update the address in state
+        if (address) {
+          if (type === 'pickup') {
+            setFilters(prev => ({
+              ...prev,
+              pickupAddress: address
+            }));
+          } else if (type === 'dropoff') {
+            setFilters(prev => ({
+              ...prev,
+              dropoffAddress: address
+            }));
+          }
+          toast.dismiss(loadingToast);
+          toast.success(`${type === 'pickup' ? 'Pickup' : 'Dropoff'} address found`);
+        } else {
+          toast.dismiss(loadingToast);
+          toast.error(`Couldn't find address for the selected location`);
+        }
+      } catch (error) {
+        console.error('Error in handleLocationSelect:', error);
+        toast.error(`Error retrieving address for ${type} location`);
+      }
+    }
   };
 
   // Apply filters to rides
@@ -303,14 +524,25 @@ export default function Rides() {
   const getLocationString = (location) => {
     if (!location) return 'N/A';
     
+    // First priority: Check if there's an address
+    if (location.address) {
+      return location.address;
+    }
+    
+    // Second priority: Check if there's a name
+    if (location.name) {
+      return location.name;
+    }
+    
+    // Third priority: Check for coordinates
+    if (location.coordinates && Array.isArray(location.coordinates)) {
+      // Don't display raw coordinates to the user, show a more friendly message
+      return 'Location coordinates available';
+    }
+    
+    // Fourth priority: If location is just a string
     if (typeof location === 'string') {
       return location;
-    } else if (location.coordinates && Array.isArray(location.coordinates)) {
-      return `[${location.coordinates.join(', ')}]`;
-    } else if (location.address) {
-      return location.address;
-    } else if (location.name) {
-      return location.name;
     }
     
     return 'Location';
@@ -335,34 +567,54 @@ export default function Rides() {
                 <p className="text-sm text-gray-500">Where would you like to be picked up?</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 mb-2">
-                <div>
-                  <label htmlFor="pickupLng" className="block text-sm font-medium text-gray-700">Longitude</label>
-                  <input
-                    type="text"
-                    id="pickupLng"
-                    name="pickupLng"
-                    value={filters.pickupLng}
-                    onChange={handleFilterChange}
-                    className="mt-1 focus:ring-indigo-700 focus:border-indigo-700 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                    placeholder="e.g. -74.0060"
-                  />
-                  {!filters.pickupLng && <p className="mt-1 text-xs text-red-500">Required</p>}
-                </div>
-                <div>
-                  <label htmlFor="pickupLat" className="block text-sm font-medium text-gray-700">Latitude</label>
-                  <input
-                    type="text"
-                    id="pickupLat"
-                    name="pickupLat"
-                    value={filters.pickupLat}
-                    onChange={handleFilterChange}
-                    className="mt-1 focus:ring-indigo-700 focus:border-indigo-700 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                    placeholder="e.g. 40.7128"
-                  />
-                  {!filters.pickupLat && <p className="mt-1 text-xs text-red-500">Required</p>}
-                </div>
+              {/* Google Maps location search */}
+              <div className="mb-4">
+                <LocationSearchBox 
+                  onPlaceSelect={handleLocationSelect}
+                  placeholder="Search for pickup location"
+                  type="pickup"
+                />
               </div>
+              
+              {showPickupMap && (
+                <div className="mb-4">
+                  <GoogleMapPicker
+                    initialPosition={
+                      filters.pickupLat && filters.pickupLng
+                        ? {
+                            lat: parseFloat(filters.pickupLat),
+                            lng: parseFloat(filters.pickupLng)
+                          }
+                        : null
+                    }
+                    onLocationSelect={handleLocationSelect}
+                    type="pickup"
+                  />
+                </div>
+              )}
+              
+              {filters.pickupAddress && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Selected Address:</span> {filters.pickupAddress}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Coordinates: [{filters.pickupLng}, {filters.pickupLat}]
+                  </p>
+                </div>
+              )}
+              
+              {/* Show coordinates even if we don't have an address yet */}
+              {!filters.pickupAddress && filters.pickupLat && filters.pickupLng && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Location selected on map</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Coordinates: [{filters.pickupLng}, {filters.pickupLat}]
+                  </p>
+                </div>
+              )}
               
               <div className="flex justify-end space-x-2">
                 <button
@@ -378,8 +630,17 @@ export default function Rides() {
                   onClick={() => openGoogleMaps('pickup')}
                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
                 >
-                  Find on Google Maps
-                  <ArrowRightIcon className="h-3 w-3 ml-1" />
+                  {showPickupMap ? (
+                    <>
+                      Close Map
+                      <ArrowRightIcon className="h-3 w-3 ml-1 transform rotate-90" />
+                    </>
+                  ) : (
+                    <>
+                      Open Map
+                      <ArrowRightIcon className="h-3 w-3 ml-1" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -391,34 +652,54 @@ export default function Rides() {
                 <p className="text-sm text-gray-500">Where would you like to go?</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 mb-2">
-                <div>
-                  <label htmlFor="dropoffLng" className="block text-sm font-medium text-gray-700">Longitude</label>
-                  <input
-                    type="text"
-                    id="dropoffLng"
-                    name="dropoffLng"
-                    value={filters.dropoffLng}
-                    onChange={handleFilterChange}
-                    className="mt-1 focus:ring-indigo-700 focus:border-indigo-700 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                    placeholder="e.g. -118.2437"
-                  />
-                  {!filters.dropoffLng && <p className="mt-1 text-xs text-red-500">Required</p>}
-                </div>
-                <div>
-                  <label htmlFor="dropoffLat" className="block text-sm font-medium text-gray-700">Latitude</label>
-                  <input
-                    type="text"
-                    id="dropoffLat"
-                    name="dropoffLat"
-                    value={filters.dropoffLat}
-                    onChange={handleFilterChange}
-                    className="mt-1 focus:ring-indigo-700 focus:border-indigo-700 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                    placeholder="e.g. 34.0522"
-                  />
-                  {!filters.dropoffLat && <p className="mt-1 text-xs text-red-500">Required</p>}
-                </div>
+              {/* Google Maps location search */}
+              <div className="mb-4">
+                <LocationSearchBox 
+                  onPlaceSelect={handleLocationSelect}
+                  placeholder="Search for dropoff location"
+                  type="dropoff"
+                />
               </div>
+              
+              {showDropoffMap && (
+                <div className="mb-4">
+                  <GoogleMapPicker
+                    initialPosition={
+                      filters.dropoffLat && filters.dropoffLng
+                        ? {
+                            lat: parseFloat(filters.dropoffLat),
+                            lng: parseFloat(filters.dropoffLng)
+                          }
+                        : null
+                    }
+                    onLocationSelect={handleLocationSelect}
+                    type="dropoff"
+                  />
+                </div>
+              )}
+              
+              {filters.dropoffAddress && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Selected Address:</span> {filters.dropoffAddress}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Coordinates: [{filters.dropoffLng}, {filters.dropoffLat}]
+                  </p>
+                </div>
+              )}
+              
+              {/* Show coordinates even if we don't have an address yet */}
+              {!filters.dropoffAddress && filters.dropoffLat && filters.dropoffLng && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Location selected on map</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Coordinates: [{filters.dropoffLng}, {filters.dropoffLat}]
+                  </p>
+                </div>
+              )}
               
               <div className="flex justify-end space-x-2">
                 <button
@@ -434,8 +715,17 @@ export default function Rides() {
                   onClick={() => openGoogleMaps('dropoff')}
                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
                 >
-                  Find on Google Maps
-                  <ArrowRightIcon className="h-3 w-3 ml-1" />
+                  {showDropoffMap ? (
+                    <>
+                      Close Map
+                      <ArrowRightIcon className="h-3 w-3 ml-1 transform rotate-90" />
+                    </>
+                  ) : (
+                    <>
+                      Open Map
+                      <ArrowRightIcon className="h-3 w-3 ml-1" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -449,15 +739,15 @@ export default function Rides() {
               className="w-full sm:w-auto px-8 py-3 bg-indigo-700 text-white text-lg font-medium rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {searchLoading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                <span className="inline-flex items-center">
+                  <span className="animate-spin h-4 w-4 mr-2 border-2 border-white border-r-transparent rounded-full"></span>
                   Searching...
-                </div>
+                </span>
               ) : (
-                'Search Available Rides'
+                <span className="inline-flex items-center">
+                  <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+                  Find Rides
+                </span>
               )}
             </button>
           </div>

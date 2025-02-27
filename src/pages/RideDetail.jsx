@@ -255,17 +255,28 @@ export default function RideDetail() {
   const getLocationString = (location) => {
     if (!location) return 'N/A';
     
-    if (typeof location === 'string') {
-      return location;
-    } else if (location.coordinates && Array.isArray(location.coordinates)) {
-      return `[${location.coordinates.join(', ')}]`;
-    } else if (location.address) {
+    // First priority: Check if there's an address
+    if (location.address) {
       return location.address;
-    } else if (location.name) {
+    }
+    
+    // Second priority: Check if there's a name
+    if (location.name) {
       return location.name;
     }
     
-    return 'Location';
+    // Third priority: Check for coordinates
+    if (location.coordinates && Array.isArray(location.coordinates)) {
+      // Don't display raw coordinates to the user, show a more friendly message
+      return 'Location coordinates available';
+    }
+    
+    // Fourth priority: If location is just a string
+    if (typeof location === 'string') {
+      return location;
+    }
+    
+    return 'N/A';
   };
 
   // Check if the current user is the driver of this ride
@@ -409,9 +420,19 @@ export default function RideDetail() {
                 <h1 className="text-2xl font-bold text-gray-900">
                   Ride from {getLocationString(ride.pickupLocation)}
                 </h1>
+                {ride.pickupLocation?.coordinates && (
+                  <p className="text-xs text-gray-500">
+                    Pickup coordinates: [{ride.pickupLocation.coordinates.join(', ')}]
+                  </p>
+                )}
                 <p className="mt-1 text-lg text-gray-600">
                   To {getLocationString(ride.dropoffLocation)}
                 </p>
+                {ride.dropoffLocation?.coordinates && (
+                  <p className="text-xs text-gray-500">
+                    Dropoff coordinates: [{ride.dropoffLocation.coordinates.join(', ')}]
+                  </p>
+                )}
               </div>
               
               <div className="mt-4 md:mt-0 flex items-center">

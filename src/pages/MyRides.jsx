@@ -285,323 +285,359 @@ export default function MyRides() {
     }
   };
 
+  // Function to get a formatted location string
+  const getLocationString = (location) => {
+    if (!location) return 'N/A';
+    
+    // First priority: Check if there's an address
+    if (location.address) {
+      return location.address;
+    }
+    
+    // Second priority: Check if there's a name
+    if (location.name) {
+      return location.name;
+    }
+    
+    // Third priority: Check for coordinates
+    if (location.coordinates && Array.isArray(location.coordinates)) {
+      // Don't display raw coordinates to the user, show a more friendly message
+      return 'Location coordinates available';
+    }
+    
+    // Fourth priority: If location is just a string
+    if (typeof location === 'string') {
+      return location;
+    }
+    
+    return 'N/A';
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Left column - List of rides */}
-      <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">My Offered Rides</h2>
-            <button
-              onClick={() => navigate('/rides/create')}
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              + New Ride
-            </button>
-          </div>
-          
-          {loading ? (
-            <div className="text-center py-4">
-              <p className="text-gray-500">Loading your rides...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-4">
-              <p className="text-red-500">{error}</p>
-            </div>
-          ) : myRides.length === 0 ? (
-            <div className="text-center py-8">
-              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-gray-500">You haven't offered any rides yet.</p>
+    <div className="container mx-auto px-4 py-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left column - List of rides */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-lg shadow p-6 h-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">My Offered Rides</h2>
               <button
                 onClick={() => navigate('/rides/create')}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary whitespace-nowrap"
               >
-                Offer a New Ride
+                + New Ride
               </button>
             </div>
-          ) : (
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              {myRides.map((ride) => {
-                const rideId = ride.id || ride._id;
-                const isSelected = rideId === selectedRideId;
-                const pendingCount = getPendingRequestsCount(ride);
-                
-                // Extract pickup/dropoff locations
-                const pickup = ride.pickupLocation?.coordinates || ['Unknown', 'Unknown'];
-                const dropoff = ride.dropoffLocation?.coordinates || ['Unknown', 'Unknown'];
-                
-                // Format for display (simplified for now)
-                const pickupDisplay = typeof pickup === 'string' ? pickup : 'Location';
-                const dropoffDisplay = typeof dropoff === 'string' ? dropoff : 'Destination';
-                
-                return (
-                  <div
-                    key={rideId}
-                    onClick={() => handleRideSelect(ride)}
-                    className={`p-4 rounded-lg border cursor-pointer transition ${
-                      isSelected 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-gray-200 hover:border-primary/30 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">
-                            {formatDate(ride.departureTime || ride.time)}
+            
+            {loading ? (
+              <div className="text-center py-4">
+                <p className="text-gray-500">Loading your rides...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-4">
+                <p className="text-red-500">{error}</p>
+              </div>
+            ) : myRides.length === 0 ? (
+              <div className="text-center py-8">
+                <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-2 text-gray-500">You haven't offered any rides yet.</p>
+                <button
+                  onClick={() => navigate('/rides/create')}
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  Offer a New Ride
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                {myRides.map((ride) => {
+                  const rideId = ride.id || ride._id;
+                  const isSelected = rideId === selectedRideId;
+                  const pendingCount = getPendingRequestsCount(ride);
+                  
+                  // Extract pickup/dropoff locations
+                  const pickup = ride.pickupLocation?.coordinates || ['Unknown', 'Unknown'];
+                  const dropoff = ride.dropoffLocation?.coordinates || ['Unknown', 'Unknown'];
+                  
+                  // Format for display (simplified for now)
+                  const pickupDisplay = getLocationString(ride.pickupLocation);
+                  const dropoffDisplay = getLocationString(ride.dropoffLocation);
+                  
+                  return (
+                    <div
+                      key={rideId}
+                      onClick={() => handleRideSelect(ride)}
+                      className={`p-4 rounded-lg border cursor-pointer transition ${
+                        isSelected 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-gray-200 hover:border-primary/30 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium">
+                              {formatDate(ride.departureTime || ride.time)}
+                            </p>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ride.status)}`}>
+                              {ride.status || 'active'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {ride.availableSeats || ride.seatsAvailable} seats available
                           </p>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ride.status)}`}>
-                            {ride.status || 'active'}
+                          <div className="mt-2 flex items-center text-sm text-gray-500">
+                            <span className="truncate max-w-full">{pickupDisplay} → {dropoffDisplay}</span>
+                          </div>
+                        </div>
+                        
+                        {pendingCount > 0 && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ml-2 shrink-0">
+                            {pendingCount} pending
                           </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {ride.availableSeats || ride.seatsAvailable} seats available
-                        </p>
-                        <div className="mt-2 flex items-center text-sm text-gray-500">
-                          <span className="truncate">{pickupDisplay} → {dropoffDisplay}</span>
-                        </div>
+                        )}
                       </div>
-                      
-                      {pendingCount > 0 && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          {pendingCount} pending
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Right column - Ride details and passenger requests */}
+        <div className="lg:col-span-8">
+          {selectedRide ? (
+            <div className="bg-white rounded-lg shadow divide-y divide-gray-200 h-full">
+              {/* Ride details section */}
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
+                  <h2 className="text-xl font-semibold">Ride Details</h2>
+                  {selectedRide.status === 'active' && (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditRide(selectedRide.id || selectedRide._id)}
+                        disabled={actionLoading}
+                        className="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        title="Edit Ride"
+                      >
+                        <PencilIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleCancelRide(selectedRide.id || selectedRide._id)}
+                        disabled={actionLoading}
+                        className="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        title="Cancel Ride"
+                      >
+                        <TrashIcon className="h-5 w-5 text-red-500" />
+                      </button>
+                      <button
+                        onClick={() => handleCompleteRide(selectedRide.id || selectedRide._id)}
+                        disabled={actionLoading}
+                        className="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        title="Mark as Completed"
+                      >
+                        <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Departure</h3>
+                    <p className="mt-1 text-lg font-medium">
+                      {formatDate(selectedRide.departureTime || selectedRide.time)}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                    <p className="mt-1 text-lg font-medium">
+                      ${selectedRide.price?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Available Seats</h3>
+                    <p className="mt-1 text-lg font-medium">
+                      {selectedRide.availableSeats || selectedRide.seatsAvailable || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                    <p className={`mt-1 inline-block px-2 py-0.5 rounded-md text-sm font-medium ${getStatusColor(selectedRide.status)}`}>
+                      {selectedRide.status || 'active'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Car Details</h3>
+                    <p className="mt-1 text-md">
+                      {selectedRide.carModel || 'Not specified'} - {selectedRide.carNumber || 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Preferences</h3>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {selectedRide.preferences?.smoking !== undefined && (
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+                          selectedRide.preferences.smoking 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedRide.preferences.smoking ? 'Smoking allowed' : 'No smoking'}
+                        </span>
+                      )}
+                      {selectedRide.preferences?.pets !== undefined && (
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+                          selectedRide.preferences.pets 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedRide.preferences.pets ? 'Pets allowed' : 'No pets'}
+                        </span>
+                      )}
+                      {selectedRide.preferences?.alcohol !== undefined && (
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+                          selectedRide.preferences.alcohol 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedRide.preferences.alcohol ? 'Alcohol allowed' : 'No alcohol'}
+                        </span>
+                      )}
+                      {selectedRide.preferences?.gender && selectedRide.preferences.gender !== 'any' && (
+                        <span className="px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                          {selectedRide.preferences.gender === 'male' ? 'Male passengers only' : 'Female passengers only'}
                         </span>
                       )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Right column - Ride details and passenger requests */}
-      <div className="lg:col-span-2">
-        {selectedRide ? (
-          <div className="bg-white rounded-lg shadow divide-y divide-gray-200">
-            {/* Ride details section */}
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-xl font-semibold">Ride Details</h2>
-                {selectedRide.status === 'active' && (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditRide(selectedRide.id || selectedRide._id)}
-                      disabled={actionLoading}
-                      className="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      title="Edit Ride"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleCancelRide(selectedRide.id || selectedRide._id)}
-                      disabled={actionLoading}
-                      className="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      title="Cancel Ride"
-                    >
-                      <TrashIcon className="h-5 w-5 text-red-500" />
-                    </button>
-                    <button
-                      onClick={() => handleCompleteRide(selectedRide.id || selectedRide._id)}
-                      disabled={actionLoading}
-                      className="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      title="Mark as Completed"
-                    >
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                    </button>
+                </div>
+                
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium text-gray-500">Pickup Location</h3>
+                  <p className="mt-1 text-md break-words">
+                    {getLocationString(selectedRide.pickupLocation)}
+                    {selectedRide.pickupLocation?.coordinates && (
+                      <span className="block text-xs text-gray-500 mt-1 break-all">
+                        Coordinates: [{selectedRide.pickupLocation.coordinates.join(', ')}]
+                      </span>
+                    )}
+                  </p>
+                </div>
+                
+                <div className="mt-3">
+                  <h3 className="text-sm font-medium text-gray-500">Dropoff Location</h3>
+                  <p className="mt-1 text-md break-words">
+                    {getLocationString(selectedRide.dropoffLocation)}
+                    {selectedRide.dropoffLocation?.coordinates && (
+                      <span className="block text-xs text-gray-500 mt-1 break-all">
+                        Coordinates: [{selectedRide.dropoffLocation.coordinates.join(', ')}]
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Passenger requests section */}
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Passenger Requests</h2>
+                
+                {requestsLoading ? (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500">Loading requests...</p>
+                  </div>
+                ) : pendingRequests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <p className="mt-2 text-gray-500">No passenger requests yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingRequests.map((request) => {
+                      const userId = getUserId(request);
+                      const name = getUserName(request);
+                      const status = request.status || 'pending';
+                      const initial = getUserInitial(request);
+                      
+                      return (
+                        <div 
+                          key={userId}
+                          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg flex-wrap gap-3"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">
+                              {initial}
+                            </div>
+                            <div>
+                              <p className="font-medium">{name}</p>
+                              <div className="mt-1">
+                                {status === 'confirmed' && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    <CheckCircleIcon className="mr-1 h-3 w-3 text-green-600" />
+                                    Confirmed
+                                  </span>
+                                )}
+                                {status === 'rejected' && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                    <XCircleIcon className="mr-1 h-3 w-3 text-red-600" />
+                                    Rejected
+                                  </span>
+                                )}
+                                {status === 'pending' && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                    <ClockIcon className="mr-1 h-3 w-3 text-yellow-600" />
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {status === 'pending' && selectedRide.status === 'active' && (
+                            <div className="flex space-x-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleRequestAction(userId, 'confirmed')}
+                                disabled={actionLoading}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleRequestAction(userId, 'rejected')}
+                                disabled={actionLoading}
+                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Departure</h3>
-                  <p className="mt-1 text-lg font-medium">
-                    {formatDate(selectedRide.departureTime || selectedRide.time)}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Price</h3>
-                  <p className="mt-1 text-lg font-medium">
-                    ${selectedRide.price?.toFixed(2) || '0.00'}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Available Seats</h3>
-                  <p className="mt-1 text-lg font-medium">
-                    {selectedRide.availableSeats || selectedRide.seatsAvailable || 0}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                  <p className={`mt-1 inline-block px-2 py-0.5 rounded-md text-sm font-medium ${getStatusColor(selectedRide.status)}`}>
-                    {selectedRide.status || 'active'}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Car Details</h3>
-                  <p className="mt-1 text-md">
-                    {selectedRide.carModel || 'Not specified'} - {selectedRide.carNumber || 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Preferences</h3>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {selectedRide.preferences?.smoking !== undefined && (
-                      <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                        selectedRide.preferences.smoking 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {selectedRide.preferences.smoking ? 'Smoking allowed' : 'No smoking'}
-                      </span>
-                    )}
-                    {selectedRide.preferences?.pets !== undefined && (
-                      <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                        selectedRide.preferences.pets 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {selectedRide.preferences.pets ? 'Pets allowed' : 'No pets'}
-                      </span>
-                    )}
-                    {selectedRide.preferences?.alcohol !== undefined && (
-                      <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                        selectedRide.preferences.alcohol 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {selectedRide.preferences.alcohol ? 'Alcohol allowed' : 'No alcohol'}
-                      </span>
-                    )}
-                    {selectedRide.preferences?.gender && selectedRide.preferences.gender !== 'any' && (
-                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                        {selectedRide.preferences.gender === 'male' ? 'Male passengers only' : 'Female passengers only'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-6">
-                <h3 className="text-sm font-medium text-gray-500">Pickup Location</h3>
-                <p className="mt-1 text-md">
-                  {selectedRide.pickupLocation?.coordinates ? 
-                    `[${selectedRide.pickupLocation.coordinates.join(', ')}]` : 
-                    'Not specified'}
-                </p>
-              </div>
-              
-              <div className="mt-3">
-                <h3 className="text-sm font-medium text-gray-500">Dropoff Location</h3>
-                <p className="mt-1 text-md">
-                  {selectedRide.dropoffLocation?.coordinates ? 
-                    `[${selectedRide.dropoffLocation.coordinates.join(', ')}]` : 
-                    'Not specified'}
-                </p>
-              </div>
             </div>
-            
-            {/* Passenger requests section */}
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Passenger Requests</h2>
+          ) : (
+            <div className="bg-white rounded-lg shadow p-8 md:p-16 text-center">
+              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">No ride selected</h3>
+              <p className="mt-1 text-gray-500">
+                {myRides.length > 0 
+                  ? 'Select a ride from the list to see details and passenger requests'
+                  : 'Offer a ride to get started!'}
+              </p>
               
-              {requestsLoading ? (
-                <div className="text-center py-4">
-                  <p className="text-gray-500">Loading requests...</p>
-                </div>
-              ) : pendingRequests.length === 0 ? (
-                <div className="text-center py-8">
-                  <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-gray-500">No passenger requests yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingRequests.map((request) => {
-                    const userId = getUserId(request);
-                    const name = getUserName(request);
-                    const status = request.status || 'pending';
-                    const initial = getUserInitial(request);
-                    
-                    return (
-                      <div 
-                        key={userId}
-                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                            {initial}
-                          </div>
-                          <div>
-                            <p className="font-medium">{name}</p>
-                            <div className="mt-1">
-                              {status === 'confirmed' && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                  <CheckCircleIcon className="mr-1 h-3 w-3 text-green-600" />
-                                  Confirmed
-                                </span>
-                              )}
-                              {status === 'rejected' && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                                  <XCircleIcon className="mr-1 h-3 w-3 text-red-600" />
-                                  Rejected
-                                </span>
-                              )}
-                              {status === 'pending' && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                  <ClockIcon className="mr-1 h-3 w-3 text-yellow-600" />
-                                  Pending
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {status === 'pending' && selectedRide.status === 'active' && (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleRequestAction(userId, 'confirmed')}
-                              disabled={actionLoading}
-                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleRequestAction(userId, 'rejected')}
-                              disabled={actionLoading}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+              {myRides.length === 0 && (
+                <button
+                  onClick={() => navigate('/rides/create')}
+                  className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  Offer a New Ride
+                </button>
               )}
             </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow p-16 text-center">
-            <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-lg font-medium text-gray-900">No ride selected</h3>
-            <p className="mt-1 text-gray-500">
-              {myRides.length > 0 
-                ? 'Select a ride from the list to see details and passenger requests'
-                : 'Offer a ride to get started!'}
-            </p>
-            
-            {myRides.length === 0 && (
-              <button
-                onClick={() => navigate('/rides/create')}
-                className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Offer a New Ride
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

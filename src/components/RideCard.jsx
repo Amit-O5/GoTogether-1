@@ -115,8 +115,17 @@ export default function RideCard({ ride, onRequest }) {
             <div className="flex-1 min-w-0">
               <div className="text-sm text-gray-500">Pickup</div>
               <div className="font-medium text-gray-900 break-words">
-                {Array.isArray(pickupCoordinates) ? `[${pickupCoordinates.join(', ')}]` : pickupCoordinates}
+                {ride.pickupLocation?.address ? (
+                  ride.pickupLocation.address
+                ) : (
+                  Array.isArray(pickupCoordinates) ? `[${pickupCoordinates.join(', ')}]` : pickupCoordinates
+                )}
               </div>
+              {ride.pickupLocation?.address && (
+                <div className="text-xs text-gray-500">
+                  Coordinates: [{pickupCoordinates.join(', ')}]
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-start space-x-3">
@@ -124,8 +133,17 @@ export default function RideCard({ ride, onRequest }) {
             <div className="flex-1 min-w-0">
               <div className="text-sm text-gray-500">Dropoff</div>
               <div className="font-medium text-gray-900 break-words">
-                {Array.isArray(dropoffCoordinates) ? `[${dropoffCoordinates.join(', ')}]` : dropoffCoordinates}
+                {ride.dropoffLocation?.address ? (
+                  ride.dropoffLocation.address
+                ) : (
+                  Array.isArray(dropoffCoordinates) ? `[${dropoffCoordinates.join(', ')}]` : dropoffCoordinates
+                )}
               </div>
+              {ride.dropoffLocation?.address && (
+                <div className="text-xs text-gray-500">
+                  Coordinates: [{dropoffCoordinates.join(', ')}]
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -469,17 +469,28 @@ export default function RideRequests() {
   const getLocationString = (location) => {
     if (!location) return 'N/A';
     
-    if (typeof location === 'string') {
-      return location;
-    } else if (location.coordinates && Array.isArray(location.coordinates)) {
-      return `[${location.coordinates.join(', ')}]`;
-    } else if (location.address) {
+    // First priority: Check if there's an address
+    if (location.address) {
       return location.address;
-    } else if (location.name) {
+    }
+    
+    // Second priority: Check if there's a name
+    if (location.name) {
       return location.name;
     }
     
-    return 'Location';
+    // Third priority: Check for coordinates
+    if (location.coordinates && Array.isArray(location.coordinates)) {
+      // Don't display raw coordinates to the user, show a more friendly message
+      return 'Location coordinates available';
+    }
+    
+    // Fourth priority: If location is just a string
+    if (typeof location === 'string') {
+      return location;
+    }
+    
+    return 'N/A';
   };
 
   // Force refresh all ride statuses by directly checking each ride

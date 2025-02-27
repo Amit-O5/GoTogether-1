@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { rides } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
-import { MapPinIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import GoogleMapPicker from '../components/GoogleMapPicker';
+import LocationSearchBox from '../components/LocationSearchBox';
 
 export default function CreateRide() {
   const [formData, setFormData] = useState({
@@ -12,10 +14,12 @@ export default function CreateRide() {
     pickupLocation: {
       type: 'Point',
       coordinates: ['', ''], // [longitude, latitude]
+      address: ''
     },
     dropoffLocation: {
       type: 'Point',
       coordinates: ['', ''], // [longitude, latitude]
+      address: ''
     },
     time: '',
     seatsAvailable: '',
@@ -26,6 +30,8 @@ export default function CreateRide() {
     genderPreference: 'any',
   });
 
+  const [showPickupMap, setShowPickupMap] = useState(false);
+  const [showDropoffMap, setShowDropoffMap] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -59,6 +65,17 @@ export default function CreateRide() {
       return;
     }
 
+    // Validate that coordinates are set through map selection
+    if (!formData.pickupLocation.coordinates[0] || !formData.pickupLocation.coordinates[1]) {
+      toast.error('Please select a pickup location using the map');
+      return;
+    }
+
+    if (!formData.dropoffLocation.coordinates[0] || !formData.dropoffLocation.coordinates[1]) {
+      toast.error('Please select a dropoff location using the map');
+      return;
+    }
+
     setLoading(true);
     try {
       await rides.create(formData);
@@ -72,7 +89,36 @@ export default function CreateRide() {
   };
 
   const openGoogleMaps = (type) => {
-    window.open('https://www.google.com/maps', '_blank');
+    // Toggle map visibility
+    if (type === 'pickup') {
+      // If map is already showing, close it
+      if (showPickupMap) {
+        setShowPickupMap(false);
+        return;
+      }
+      
+      // Always show the map on the current page, don't open in new tab
+      setShowPickupMap(true);
+      
+      // Show a hint to the user if opening map without coordinates
+      if (!formData.pickupLocation.coordinates[0] || !formData.pickupLocation.coordinates[1]) {
+        toast.info('Please select a pickup location on the map or use your current location.');
+      }
+    } else if (type === 'dropoff') {
+      // If map is already showing, close it
+      if (showDropoffMap) {
+        setShowDropoffMap(false);
+        return;
+      }
+      
+      // Always show the map on the current page, don't open in new tab
+      setShowDropoffMap(true);
+      
+      // Show a hint to the user if opening map without coordinates
+      if (!formData.dropoffLocation.coordinates[0] || !formData.dropoffLocation.coordinates[1]) {
+        toast.info('Please select a dropoff location on the map or use your current location.');
+      }
+    }
   };
 
   // Function to get current location
@@ -91,18 +137,79 @@ export default function CreateRide() {
             },
           }));
           
+          // Show the map with current location
+          if (type === 'pickup') {
+            setShowPickupMap(true);
+          } else {
+            setShowDropoffMap(true);
+          }
+          
+          // Try to get the address using reverse geocoding
+          fetchAddressFromCoordinates(latitude, longitude, type);
+          
           toast.dismiss(loadingToast);
           toast.success(`${type === 'pickup' ? 'Pickup' : 'Dropoff'} location set to your current location`);
         },
         (error) => {
           console.error('Error getting location:', error);
           toast.dismiss(loadingToast);
-          toast.error('Could not get your location. Please enter coordinates manually.');
+          toast.error('Could not get your location. Please select it on the map.');
         },
         { enableHighAccuracy: true }
       );
     } else {
       toast.error('Geolocation is not supported by your browser');
+    }
+  };
+  
+  // Helper function to get address from coordinates
+  const fetchAddressFromCoordinates = async (lat, lng, type) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return;
+    
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+      );
+      
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const address = data.results[0].formatted_address;
+        
+        setFormData(prev => ({
+          ...prev,
+          [`${type}Location`]: {
+            ...prev[`${type}Location`],
+            address: address
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching address:', error);
+    }
+  };
+  
+  // Handle location selection from map
+  const handleLocationSelect = (location, type) => {
+    if (type === 'pickup') {
+      setFormData(prev => ({
+        ...prev,
+        pickupLocation: {
+          ...prev.pickupLocation,
+          coordinates: [location.lng.toString(), location.lat.toString()],
+          address: location.address || ''
+        }
+      }));
+    } else if (type === 'dropoff') {
+      setFormData(prev => ({
+        ...prev,
+        dropoffLocation: {
+          ...prev.dropoffLocation,
+          coordinates: [location.lng.toString(), location.lat.toString()],
+          address: location.address || ''
+        }
+      }));
     }
   };
 
@@ -152,107 +259,177 @@ export default function CreateRide() {
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Route Details</h3>
               <div className="space-y-6">
                 <div>
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="mb-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Pickup Location</label>
                       <p className="text-xs text-gray-500 mt-0.5">Where will you start your journey?</p>
                     </div>
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => getCurrentLocation('pickup')}
-                        className="text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center"
-                      >
-                        <MapPinIcon className="h-4 w-4 mr-1" />
-                        Use Current Location
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openGoogleMaps('pickup')}
-                        className="text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center"
-                      >
-                        Find on Google Maps →
-                      </button>
-                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Longitude</label>
-                      <input
-                        type="text"
-                        name="pickup_coordinates_0"
-                        required
-                        className="input"
-                        placeholder="Longitude"
-                        value={formData.pickupLocation.coordinates[0]}
-                        onChange={handleChange}
+                  
+                  {/* Google Maps location search */}
+                  <div className="mb-4">
+                    <LocationSearchBox 
+                      onPlaceSelect={handleLocationSelect}
+                      placeholder="Search for pickup location"
+                      type="pickup"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => getCurrentLocation('pickup')}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
+                    >
+                      <MapPinIcon className="h-4 w-4 mr-1" />
+                      Use Current Location
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openGoogleMaps('pickup')}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
+                    >
+                      {showPickupMap ? (
+                        <>
+                          Close Map
+                          <ArrowRightIcon className="h-3 w-3 ml-1 transform rotate-90" />
+                        </>
+                      ) : (
+                        <>
+                          Open Map
+                          <ArrowRightIcon className="h-3 w-3 ml-1" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {showPickupMap && (
+                    <div className="mb-4">
+                      <GoogleMapPicker
+                        initialPosition={
+                          formData.pickupLocation.coordinates[0] && formData.pickupLocation.coordinates[1]
+                            ? {
+                                lat: parseFloat(formData.pickupLocation.coordinates[1]),
+                                lng: parseFloat(formData.pickupLocation.coordinates[0])
+                              }
+                            : null
+                        }
+                        onLocationSelect={handleLocationSelect}
+                        type="pickup"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Latitude</label>
-                      <input
-                        type="text"
-                        name="pickup_coordinates_1"
-                        required
-                        className="input"
-                        placeholder="Latitude"
-                        value={formData.pickupLocation.coordinates[1]}
-                        onChange={handleChange}
-                      />
+                  )}
+                  
+                  {formData.pickupLocation.address && (
+                    <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-medium text-gray-700">
+                        Selected Address: {formData.pickupLocation.address}
+                      </p>
+                      {formData.pickupLocation.coordinates[0] && formData.pickupLocation.coordinates[1] && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Coordinates: [{formData.pickupLocation.coordinates[0]}, {formData.pickupLocation.coordinates[1]}]
+                        </p>
+                      )}
                     </div>
-                  </div>
+                  )}
+                  
+                  {!formData.pickupLocation.address && formData.pickupLocation.coordinates[0] && formData.pickupLocation.coordinates[1] && (
+                    <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-medium text-gray-700">
+                        Location selected on map
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Coordinates: [{formData.pickupLocation.coordinates[0]}, {formData.pickupLocation.coordinates[1]}]
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="mb-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Dropoff Location</label>
                       <p className="text-xs text-gray-500 mt-0.5">Where will your journey end?</p>
                     </div>
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => getCurrentLocation('dropoff')}
-                        className="text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center"
-                      >
-                        <MapPinIcon className="h-4 w-4 mr-1" />
-                        Use Current Location
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openGoogleMaps('dropoff')}
-                        className="text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center"
-                      >
-                        Find on Google Maps →
-                      </button>
-                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Longitude</label>
-                      <input
-                        type="text"
-                        name="dropoff_coordinates_0"
-                        required
-                        className="input"
-                        placeholder="Longitude"
-                        value={formData.dropoffLocation.coordinates[0]}
-                        onChange={handleChange}
+                  
+                  {/* Google Maps location search */}
+                  <div className="mb-4">
+                    <LocationSearchBox 
+                      onPlaceSelect={handleLocationSelect}
+                      placeholder="Search for dropoff location"
+                      type="dropoff"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => getCurrentLocation('dropoff')}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
+                    >
+                      <MapPinIcon className="h-4 w-4 mr-1" />
+                      Use Current Location
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openGoogleMaps('dropoff')}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
+                    >
+                      {showDropoffMap ? (
+                        <>
+                          Close Map
+                          <ArrowRightIcon className="h-3 w-3 ml-1 transform rotate-90" />
+                        </>
+                      ) : (
+                        <>
+                          Open Map
+                          <ArrowRightIcon className="h-3 w-3 ml-1" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {showDropoffMap && (
+                    <div className="mb-4">
+                      <GoogleMapPicker
+                        initialPosition={
+                          formData.dropoffLocation.coordinates[0] && formData.dropoffLocation.coordinates[1]
+                            ? {
+                                lat: parseFloat(formData.dropoffLocation.coordinates[1]),
+                                lng: parseFloat(formData.dropoffLocation.coordinates[0])
+                              }
+                            : null
+                        }
+                        onLocationSelect={handleLocationSelect}
+                        type="dropoff"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Latitude</label>
-                      <input
-                        type="text"
-                        name="dropoff_coordinates_1"
-                        required
-                        className="input"
-                        placeholder="Latitude"
-                        value={formData.dropoffLocation.coordinates[1]}
-                        onChange={handleChange}
-                      />
+                  )}
+                  
+                  {formData.dropoffLocation.address && (
+                    <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-medium text-gray-700">
+                        Selected Address: {formData.dropoffLocation.address}
+                      </p>
+                      {formData.dropoffLocation.coordinates[0] && formData.dropoffLocation.coordinates[1] && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Coordinates: [{formData.dropoffLocation.coordinates[0]}, {formData.dropoffLocation.coordinates[1]}]
+                        </p>
+                      )}
                     </div>
-                  </div>
+                  )}
+                  
+                  {!formData.dropoffLocation.address && formData.dropoffLocation.coordinates[0] && formData.dropoffLocation.coordinates[1] && (
+                    <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-medium text-gray-700">
+                        Location selected on map
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Coordinates: [{formData.dropoffLocation.coordinates[0]}, {formData.dropoffLocation.coordinates[1]}]
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
