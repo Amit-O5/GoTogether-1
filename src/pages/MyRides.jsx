@@ -7,7 +7,9 @@ import {
   PencilIcon, 
   TrashIcon, 
   CheckCircleIcon,
-  ExclamationCircleIcon 
+  ExclamationCircleIcon,
+  ClockIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 
 export default function MyRides() {
@@ -532,12 +534,26 @@ export default function MyRides() {
                           </div>
                           <div>
                             <p className="font-medium">{name}</p>
-                            <p className={`text-sm capitalize ${
-                              status === 'confirmed' ? 'text-green-600' : 
-                              status === 'rejected' ? 'text-red-600' : 'text-gray-500'
-                            }`}>
-                              {status}
-                            </p>
+                            <div className="mt-1">
+                              {status === 'confirmed' && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                  <CheckCircleIcon className="mr-1 h-3 w-3 text-green-600" />
+                                  Confirmed
+                                </span>
+                              )}
+                              {status === 'rejected' && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                  <XCircleIcon className="mr-1 h-3 w-3 text-red-600" />
+                                  Rejected
+                                </span>
+                              )}
+                              {status === 'pending' && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                  <ClockIcon className="mr-1 h-3 w-3 text-yellow-600" />
+                                  Pending
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         
