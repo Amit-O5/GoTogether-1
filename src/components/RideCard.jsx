@@ -55,6 +55,12 @@ export default function RideCard({ ride, onRequest }) {
   };
 
   const handleViewDetails = () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to view ride details');
+      navigate('/login');
+      return;
+    }
+    
     navigate(`/rides/${ride.id || ride._id}`);
   };
 

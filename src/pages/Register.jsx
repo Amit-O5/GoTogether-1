@@ -116,21 +116,6 @@ export default function Register() {
                 onChange={handleChange}
               />
             </div>
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                I want to
-              </label>
-              <select
-                id="role"
-                name="role"
-                className="input mt-1"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="rider">Find Rides</option>
-                <option value="driver">Offer Rides</option>
-              </select>
-            </div>
           </div>
 
           <div>

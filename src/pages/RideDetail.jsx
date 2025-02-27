@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { rides as ridesApi, users as usersApi, ratings as ratingsApi } from '../services/api';
+import { rides as ridesApi, users as usersApi, ratings as ratingsApi, reports as reportsApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { 
@@ -14,6 +14,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
+import { Dialog, Transition } from '@headlessui/react';
 
 export default function RideDetail() {
   const { id } = useParams();
@@ -28,6 +29,14 @@ export default function RideDetail() {
   const [error, setError] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Add state for reporting
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportInfo, setReportInfo] = useState({
+    reason: 'inappropriate_behavior',
+    description: '',
+  });
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     fetchRideDetails();
@@ -299,6 +308,57 @@ export default function RideDetail() {
     
     // User can rate only if they were a confirmed passenger on a completed ride
     return isRideCompleted() && requestStatus === 'confirmed';
+  };
+
+  // Add handleReportUser function
+  const handleReportUser = async (e) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast.error('Please log in to report a user');
+      navigate('/login');
+      return;
+    }
+    
+    if (!reportInfo.description.trim()) {
+      toast.error('Please provide a description of the issue');
+      return;
+    }
+    
+    try {
+      setReportLoading(true);
+      
+      const userToReport = typeof ride.creator === 'string' 
+        ? ride.creator 
+        : ride.creator.id || ride.creator._id;
+      
+      await reportsApi.reportUser({
+        reportedUserId: userToReport,
+        rideId: id,
+        reason: reportInfo.reason,
+        description: reportInfo.description
+      });
+      
+      toast.success('Report submitted successfully');
+      setReportModalOpen(false);
+      
+      // Reset report form
+      setReportInfo({
+        reason: 'inappropriate_behavior',
+        description: '',
+      });
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      
+      let errorMessage = 'Failed to submit report.';
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setReportLoading(false);
+    }
   };
 
   return (
@@ -635,6 +695,20 @@ export default function RideDetail() {
                 </div>
               </div>
             )}
+
+            {/* Report User button */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Driver Information</h2>
+              {user && ride && user.id !== (driver?.id || ride.creator?.id || ride.creator) && (
+                <button
+                  type="button"
+                  onClick={() => setReportModalOpen(true)}
+                  className="text-sm text-red-600 hover:text-red-800"
+                >
+                  Report User
+                </button>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -649,6 +723,105 @@ export default function RideDetail() {
           </button>
         </div>
       )}
+
+      {/* Report User Modal */}
+      <Transition.Root show={reportModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setReportModalOpen}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                  <form onSubmit={handleReportUser}>
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                          <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                        </div>
+                        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                          <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                            Report User
+                          </Dialog.Title>
+                          <div className="mt-4 space-y-4">
+                            <div>
+                              <label htmlFor="report-reason" className="block text-sm font-medium text-gray-700">
+                                Reason for Report
+                              </label>
+                              <select
+                                id="report-reason"
+                                name="reason"
+                                value={reportInfo.reason}
+                                onChange={(e) => setReportInfo({ ...reportInfo, reason: e.target.value })}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                              >
+                                <option value="inappropriate_behavior">Inappropriate Behavior</option>
+                                <option value="unsafe_driving">Unsafe Driving</option>
+                                <option value="no_show">No Show</option>
+                                <option value="harassment">Harassment</option>
+                                <option value="other">Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label htmlFor="report-description" className="block text-sm font-medium text-gray-700">
+                                Description
+                              </label>
+                              <textarea
+                                id="report-description"
+                                name="description"
+                                rows={4}
+                                value={reportInfo.description}
+                                onChange={(e) => setReportInfo({ ...reportInfo, description: e.target.value })}
+                                placeholder="Please provide details about the issue..."
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                      <button
+                        type="submit"
+                        disabled={reportLoading}
+                        className="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                      >
+                        {reportLoading ? 'Submitting...' : 'Submit Report'}
+                      </button>
+                      <button
+                        type="button"
+                        className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        onClick={() => setReportModalOpen(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </div>
   );
 } 
