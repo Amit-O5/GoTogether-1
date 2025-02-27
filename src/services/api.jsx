@@ -17,19 +17,16 @@ api.interceptors.request.use((config) => {
 });
 
 export const auth = {
-  register: (data) => api.post('/auth/register', data),
-  login: (data) => api.post('/auth/login', data),
+  register: (data) => api.post('/api/auth/register', data),
+  login: (data) => api.post('/api/auth/login', data),
 };
 
 export const rides = {
-  // 2.1 Create Ride - POST /api/rides/createRide
-  create: (data) => api.post('/rides/createRide', data),
+  // Get all rides
+  getAllRides: (params = {}) => api.get('/api/rides/getRides', { params }),
   
-  // 2.2 Get All Rides - GET /api/rides/getRides
-  getAll: (params = {}) => api.get('/rides/getRides', { params }),
-  
-  // 2.3 Get Best Matching Rides - GET /api/rides/bestRides
-  getBest: (params) => api.get('/rides/bestRides', { 
+  // Get best matching rides
+  getBestMatches: (params) => api.get('/api/rides/bestRides', { 
     params: {
       pickupLat: params.pickupLat,
       pickupLng: params.pickupLng,
@@ -39,84 +36,88 @@ export const rides = {
     } 
   }),
   
-  // 2.4 Get Ride by ID - GET /api/rides/:id
-  getRideById: (rideId) => api.get(`/rides/${rideId}`),
+  // Get ride by ID
+  getRideById: (rideId) => api.get(`/api/rides/${rideId}`),
   
-  // 2.4 Get User Ride Requests - GET /api/rides/myRequests
-  getMyRequests: () => api.get('/rides/myRequests'),
+  // Get user ride requests
+  getUserRequests: () => api.get('/api/rides/myRequests'),
   
-  // 2.5 Request Ride - PUT /api/rides/:id/request
-  request: (rideId) => api.put(`/rides/${rideId}/request`),
+  // Request a ride
+  requestRide: (rideId) => api.put(`/api/rides/${rideId}/request`),
   
-  // 2.6 Approve/Reject Ride Request - PUT /api/rides/:id/approval
+  // Cancel a request
+  cancelRequest: (requestId) => api.delete(`/api/rides/request/${requestId}`),
+  
+  // Approve/reject ride request
   approveRequest: (rideId, passengerId, status) => 
-    api.put(`/rides/${rideId}/approval`, { 
+    api.put(`/api/rides/${rideId}/approval`, { 
       passengerId, 
       status // "confirmed" or "rejected"
     }),
   
-  // Custom methods for the driver dashboard
-  // Get rides created by the current driver
-  getDriverRides: async () => {
-    console.log('Getting rides for current driver...');
-    // We'll use the general getRides endpoint with a driver filter
-    // The backend should filter based on the authenticated user's token
-    try {
-      // Explicitly set the 'onlyMine' parameter to true to filter by the current user's token
-      const response = await api.get('/rides/getRides', { 
-        params: { 
-          driver: true,
-          onlyMine: true
-        } 
-      });
-      console.log('Driver rides response:', response);
-      return response;
-    } catch (error) {
-      console.error('Failed to get driver rides:', error);
-      throw error;
-    }
-  },
+  // Get user created rides
+  getUserRides: () => api.get('/api/rides/created/list'),
   
-  // Custom method for the rider dashboard
-  // Get rides requested by the current rider
-  getRiderRides: async () => {
-    console.log('Getting rides for current rider...');
-    // We'll use the general getRides endpoint with a rider filter
-    // The backend should filter based on the authenticated user's token
-    try {
-      const response = await api.get('/rides/getRides', { 
-        params: { 
-          rider: true,
-          onlyMine: true
-        } 
-      });
-      console.log('Rider rides response:', response);
-      return response;
-    } catch (error) {
-      console.error('Failed to get rider rides:', error);
-      throw error;
-    }
-  },
+  // Create a ride
+  create: (data) => api.post('/api/rides/createRide', data),
   
-  // Get pending requests for a ride - uses the Get Ride by ID endpoint
-  getPendingRequests: async (rideId) => {
-    console.log(`Getting pending requests for ride ${rideId}...`);
-    try {
-      // Use the documented Get Ride by ID endpoint
-      const response = await api.get(`/rides/${rideId}`);
-      console.log('Ride details for pending requests:', response);
-      
-      // Extract and return the passengers array
-      const ride = response.data.data || response.data;
-      const passengers = ride.passengers || [];
-      
-      console.log('Extracted passengers:', passengers);
-      return { data: passengers };
-    } catch (error) {
-      console.error(`Failed to get pending requests for ride ${rideId}:`, error);
-      throw error;
-    }
-  }
+  // Update a ride
+  updateRide: (rideId, data) => api.put(`/api/rides/${rideId}`, data),
+  
+  // Cancel a ride
+  cancelRide: (rideId) => api.delete(`/api/rides/${rideId}`),
+  
+  // Complete a ride
+  completeRide: (rideId) => api.put(`/api/rides/${rideId}/complete`),
+  
+  // Get ride history
+  getRideHistory: () => api.get('/api/rides/history')
+};
+
+export const users = {
+  // Get user profile
+  getProfile: () => api.get('/api/users/profile'),
+  
+  // Update user profile
+  updateProfile: (data) => api.put('/api/users/profile', data),
+  
+  // Update vehicle information
+  updateVehicle: (data) => api.put('/api/users/vehicle', data),
+  
+  // Search users by name
+  searchUsers: (query, limit) => api.get('/api/users/search', { 
+    params: { query, limit } 
+  }),
+  
+  // Get user by ID
+  getUserById: (userId) => api.get(`/api/users/${userId}`)
+};
+
+export const ratings = {
+  // Create a rating
+  rateUser: (data) => api.post('/api/ratings', data),
+  
+  // Get user ratings
+  getUserRatings: (userId) => api.get(`/api/ratings/${userId}`)
+};
+
+export const reports = {
+  // Report a user
+  reportUser: (data) => api.post('/api/reports', data),
+  
+  // View my reports
+  getMyReports: () => api.get('/api/reports/my-reports')
+};
+
+export const notifications = {
+  // Get user notifications
+  getNotifications: (params = {}) => api.get('/api/notifications', { params }),
+  
+  // Mark a notification as read
+  markAsRead: (notificationId) => api.put(`/api/notifications/${notificationId}/read`),
+  
+  // Mark all notifications as read
+  markAllAsRead: () => api.put('/api/notifications/mark-all-read')
 };
 
 export default api; 

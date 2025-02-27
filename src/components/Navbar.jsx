@@ -18,18 +18,14 @@ export default function Navbar() {
     return location.pathname === path;
   };
 
-  // Get navigation items based on user role
+  // Get navigation items based on authentication status
   const getNavItems = () => {
     const items = [...navigation];
     
-    // Add Driver Dashboard link for drivers
-    if (isAuthenticated && user && user.role === 'driver') {
-      items.push({ name: 'Driver Dashboard', href: '/driver/dashboard' });
-    }
-    
-    // Add My Bookings link for all authenticated users
+    // Add authenticated user links
     if (isAuthenticated) {
-      items.push({ name: 'My Bookings', href: '/my-bookings' });
+      items.push({ name: 'My Rides', href: '/my-rides' });
+      items.push({ name: 'My Requests', href: '/ride-requests' });
     }
     
     return items;
@@ -68,7 +64,7 @@ export default function Navbar() {
                     <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="sr-only">Open user menu</span>
                       <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center">
-                        {user.firstName[0]}
+                        {user.firstName?.[0] || user.name?.[0] || 'U'}
                       </div>
                     </Menu.Button>
                     <Transition
@@ -96,29 +92,27 @@ export default function Navbar() {
                         <Menu.Item>
                           {({ active }) => (
                             <Link
-                              to="/my-bookings"
+                              to="/ride-requests"
                               className={`block px-4 py-2 text-sm ${
                                 active ? 'bg-gray-100' : ''
                               } text-gray-700`}
                             >
-                              My Bookings
+                              My Ride Requests
                             </Link>
                           )}
                         </Menu.Item>
-                        {user && user.role === 'driver' && (
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                to="/driver/dashboard"
-                                className={`block px-4 py-2 text-sm ${
-                                  active ? 'bg-gray-100' : ''
-                                } text-gray-700`}
-                              >
-                                Driver Dashboard
-                              </Link>
-                            )}
-                          </Menu.Item>
-                        )}
+                        <Menu.Item>
+                          {({ active }) => (
+                            <Link
+                              to="/my-rides"
+                              className={`block px-4 py-2 text-sm ${
+                                active ? 'bg-gray-100' : ''
+                              } text-gray-700`}
+                            >
+                              My Offered Rides
+                            </Link>
+                          )}
+                        </Menu.Item>
                         <Menu.Item>
                           {({ active }) => (
                             <button
@@ -197,6 +191,41 @@ export default function Navbar() {
                   >
                     Register
                   </Link>
+                </div>
+              </div>
+            )}
+            {isAuthenticated && (
+              <div className="border-t border-gray-200 pb-3 pt-4">
+                <div className="flex items-center px-4">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                      {user.firstName?.[0] || user.name?.[0] || 'U'}
+                    </div>
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-base font-medium text-gray-800">
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.name || user.email}
+                    </div>
+                    <div className="text-sm font-medium text-gray-500">{user.email}</div>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <Disclosure.Button
+                    as={Link}
+                    to="/profile"
+                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  >
+                    Your Profile
+                  </Disclosure.Button>
+                  <Disclosure.Button
+                    as="button"
+                    onClick={logout}
+                    className="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  >
+                    Sign out
+                  </Disclosure.Button>
                 </div>
               </div>
             )}

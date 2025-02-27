@@ -54,8 +54,8 @@ export default function CreateRide() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user || user.role !== 'driver') {
-      toast.error('Only drivers can create rides');
+    if (!user) {
+      toast.error('You must be logged in to create rides');
       return;
     }
 
@@ -63,7 +63,7 @@ export default function CreateRide() {
     try {
       await rides.create(formData);
       toast.success('Ride created successfully!');
-      navigate('/rides');
+      navigate('/my-rides');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create ride');
     } finally {

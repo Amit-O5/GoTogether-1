@@ -4,11 +4,13 @@ import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import RidesList from './components/RidesList';
+import Rides from './pages/Rides';
 import CreateRide from './pages/CreateRide';
+import EditRide from './pages/EditRide';
+import RideDetail from './pages/RideDetail';
 import Profile from './pages/Profile';
-import DriverDashboard from './pages/DriverDashboard';
-import MyBookings from './pages/MyBookings';
+import MyRides from './pages/MyRides';
+import RideRequests from './pages/RideRequests';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
@@ -20,18 +22,27 @@ function App() {
           <Navbar />
           <main className="container mx-auto px-4 py-8">
             <Routes>
-              {/* <Route path="/" element={<RidesList />} />
-              <Route
-                path="/rides"
-                element={
-                    <RidesList />
-                }
-              /> */}
+              {/* Public Routes */}
+              <Route path="/" element={<Rides />} />
+              <Route path="/rides" element={<Rides />} />
+              <Route path="/rides/:id" element={<RideDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              
+              {/* Protected Routes */}
               <Route
                 path="/rides/create"
                 element={
                   <PrivateRoute>
                     <CreateRide />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/rides/edit/:id"
+                element={
+                  <PrivateRoute>
+                    <EditRide />
                   </PrivateRoute>
                 }
               />
@@ -44,25 +55,21 @@ function App() {
                 }
               />
               <Route
-                path="/driver/dashboard"
+                path="/my-rides"
                 element={
                   <PrivateRoute>
-                    <DriverDashboard />
+                    <MyRides />
                   </PrivateRoute>
                 }
               />
               <Route
-                path="/my-bookings"
+                path="/ride-requests"
                 element={
                   <PrivateRoute>
-                    <MyBookings />
+                    <RideRequests />
                   </PrivateRoute>
                 }
               />
-              <Route path="/" element={<RidesList />} />
-              <Route path="/rides" element={<RidesList />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
             </Routes>
           </main>
         </div>
