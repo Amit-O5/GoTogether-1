@@ -4,11 +4,9 @@ import { rides } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { 
-  UserCircleIcon, 
   CalendarIcon, 
   UsersIcon,
-  MapPinIcon,
-  CurrencyDollarIcon
+  MapPinIcon
 } from '@heroicons/react/24/outline';
 
 export default function RideCard({ ride, onRequest }) {
