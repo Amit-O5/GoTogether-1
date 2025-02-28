@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { rides as ridesApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +9,8 @@ import {
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  MapPinIcon
 } from '@heroicons/react/24/outline';
 
 export default function RideRequests() {
@@ -20,8 +21,12 @@ export default function RideRequests() {
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [locationCache, setLocationCache] = useState({});
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Get the Google Maps API key from environment variables
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Fetch user's ride requests
   useEffect(() => {
@@ -51,6 +56,121 @@ export default function RideRequests() {
       setFilteredRequests(requests.filter(request => request.status === statusFilter));
     }
   }, [requests, statusFilter]);
+
+  // Function to reverse geocode coordinates to address
+  const getLocationNameFromCoordinates = useCallback(async (coordinates) => {
+    if (!coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) {
+      return null;
+    }
+    
+    // Create a cache key from coordinates
+    const cacheKey = coordinates.join(',');
+    
+    // Check if we have a cached result
+    if (locationCache[cacheKey]) {
+      return locationCache[cacheKey];
+    }
+    
+    if (!GOOGLE_MAPS_API_KEY) {
+      console.error('Google Maps API key not found in environment variables');
+      return null;
+    }
+    
+    try {
+      // Reverse coordinates order for Google Maps API
+      // Most geospatial DBs store as [longitude, latitude] but Google Maps expects [latitude, longitude]
+      const lng = coordinates[0];
+      const lat = coordinates[1];
+      
+      // Use correct order for Google Maps API: latitude,longitude
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        // Get formatted address from the first result
+        const formattedAddress = data.results[0].formatted_address;
+        
+        // Cache the result
+        setLocationCache(prev => ({
+          ...prev,
+          [cacheKey]: formattedAddress
+        }));
+        
+        return formattedAddress;
+      } else {
+        console.error('Geocoding API error:', data.status);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error geocoding coordinates:', error);
+      return null;
+    }
+  }, [GOOGLE_MAPS_API_KEY, locationCache]);
+
+  // Effect to fetch and update locations for all requests
+  useEffect(() => {
+    const updateLocationNames = async () => {
+      let updatedAnyLocation = false;
+      
+      const requestsWithUpdatedLocations = await Promise.all(
+        requests.map(async (request) => {
+          const ride = request.ride || request;
+          const updatedRide = { ...ride };
+          
+          // Try to update pickup location name
+          if (ride.pickupLocation?.coordinates && 
+              !ride.pickupLocation.cachedName && 
+              Array.isArray(ride.pickupLocation.coordinates)) {
+            const pickupName = await getLocationNameFromCoordinates(ride.pickupLocation.coordinates);
+            
+            if (pickupName) {
+              updatedAnyLocation = true;
+              updatedRide.pickupLocation = {
+                ...ride.pickupLocation,
+                cachedName: pickupName
+              };
+            }
+          }
+          
+          // Try to update dropoff location name
+          if (ride.dropoffLocation?.coordinates && 
+              !ride.dropoffLocation.cachedName && 
+              Array.isArray(ride.dropoffLocation.coordinates)) {
+            const dropoffName = await getLocationNameFromCoordinates(ride.dropoffLocation.coordinates);
+            
+            if (dropoffName) {
+              updatedAnyLocation = true;
+              updatedRide.dropoffLocation = {
+                ...ride.dropoffLocation,
+                cachedName: dropoffName
+              };
+            }
+          }
+          
+          // If ride was updated, update the request
+          if (updatedRide !== ride) {
+            return {
+              ...request,
+              ride: updatedRide
+            };
+          }
+          
+          return request;
+        })
+      );
+      
+      // Only update state if any locations were updated
+      if (updatedAnyLocation) {
+        setRequests(requestsWithUpdatedLocations);
+      }
+    };
+    
+    if (requests.length > 0 && GOOGLE_MAPS_API_KEY) {
+      updateLocationNames();
+    }
+  }, [requests, getLocationNameFromCoordinates, GOOGLE_MAPS_API_KEY]);
 
   const fetchRideRequests = async () => {
     if (!user) return;
@@ -465,27 +585,32 @@ export default function RideRequests() {
     return 'Driver';
   };
 
-  // Get location string
+  // Enhanced getLocationString to use Google Maps API data
   const getLocationString = (location) => {
     if (!location) return 'N/A';
     
-    // First priority: Check if there's an address
+    // First priority: Check if we have a cached name from Google Maps API
+    if (location.cachedName) {
+      return location.cachedName;
+    }
+    
+    // Second priority: Check if there's an address
     if (location.address) {
       return location.address;
     }
     
-    // Second priority: Check if there's a name
+    // Third priority: Check if there's a name
     if (location.name) {
       return location.name;
     }
     
-    // Third priority: Check for coordinates
+    // Fourth priority: Check for coordinates
     if (location.coordinates && Array.isArray(location.coordinates)) {
-      // Don't display raw coordinates to the user, show a more friendly message
-      return 'Location coordinates available';
+      // Instead of just showing a message, trigger geocoding (will be handled by useEffect)
+      return 'Loading location...';
     }
     
-    // Fourth priority: If location is just a string
+    // Fifth priority: If location is just a string
     if (typeof location === 'string') {
       return location;
     }
@@ -723,7 +848,24 @@ export default function RideRequests() {
                     }`}>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">{departureTime}</div>
-                        <div className="text-sm text-gray-500">{pickup} → {dropoff}</div>
+                        <div className="text-sm text-gray-500 flex items-start">
+                          <MapPinIcon className="h-4 w-4 mt-0.5 mr-1 flex-shrink-0 text-gray-400" />
+                          <span>{pickup} → {dropoff}</span>
+                        </div>
+                        {(ride.pickupLocation?.coordinates || ride.dropoffLocation?.coordinates) && (
+                          <a 
+                            href={`https://www.google.com/maps/dir/?api=1&origin=${
+                              ride.pickupLocation?.coordinates ? `${ride.pickupLocation.coordinates[1]},${ride.pickupLocation.coordinates[0]}` : ''
+                            }&destination=${
+                              ride.dropoffLocation?.coordinates ? `${ride.dropoffLocation.coordinates[1]},${ride.dropoffLocation.coordinates[0]}` : ''
+                            }`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:text-primary/80 inline-flex items-center mt-1"
+                          >
+                            <span>View route on Google Maps</span>
+                          </a>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div>

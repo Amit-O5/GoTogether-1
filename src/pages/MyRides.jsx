@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { rides as ridesApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +9,8 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ClockIcon,
-  XCircleIcon
+  XCircleIcon,
+  MapPinIcon
 } from '@heroicons/react/24/outline';
 
 export default function MyRides() {
@@ -21,13 +22,163 @@ export default function MyRides() {
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [locationCache, setLocationCache] = useState({});
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Get the Google Maps API key from environment variables
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Fetch user's rides
   useEffect(() => {
     fetchMyRides();
   }, [user]);
+
+  // Function to reverse geocode coordinates to address
+  const getLocationNameFromCoordinates = useCallback(async (coordinates) => {
+    if (!coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) {
+      return null;
+    }
+    
+    // Create a cache key from coordinates
+    const cacheKey = coordinates.join(',');
+    
+    // Check if we have a cached result
+    if (locationCache[cacheKey]) {
+      return locationCache[cacheKey];
+    }
+    
+    if (!GOOGLE_MAPS_API_KEY) {
+      console.error('Google Maps API key not found in environment variables');
+      return null;
+    }
+    
+    try {
+      // Reverse coordinates order for Google Maps API
+      // Most geospatial DBs store as [longitude, latitude] but Google Maps expects [latitude, longitude]
+      const lng = coordinates[0];
+      const lat = coordinates[1];
+      
+      // Use correct order for Google Maps API: latitude,longitude
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        // Get formatted address from the first result
+        const formattedAddress = data.results[0].formatted_address;
+        
+        // Cache the result
+        setLocationCache(prev => ({
+          ...prev,
+          [cacheKey]: formattedAddress
+        }));
+        
+        return formattedAddress;
+      } else {
+        console.error('Geocoding API error:', data.status);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error geocoding coordinates:', error);
+      return null;
+    }
+  }, [GOOGLE_MAPS_API_KEY, locationCache]);
+
+  // Effect to fetch and update locations for all rides
+  useEffect(() => {
+    const updateLocationNames = async () => {
+      let updatedAnyLocation = false;
+      
+      // First update the myRides array
+      const ridesWithUpdatedLocations = await Promise.all(
+        myRides.map(async (ride) => {
+          const updatedRide = { ...ride };
+          
+          // Try to update pickup location name
+          if (ride.pickupLocation?.coordinates && 
+              !ride.pickupLocation.cachedName && 
+              Array.isArray(ride.pickupLocation.coordinates)) {
+            const pickupName = await getLocationNameFromCoordinates(ride.pickupLocation.coordinates);
+            
+            if (pickupName) {
+              updatedAnyLocation = true;
+              updatedRide.pickupLocation = {
+                ...ride.pickupLocation,
+                cachedName: pickupName
+              };
+            }
+          }
+          
+          // Try to update dropoff location name
+          if (ride.dropoffLocation?.coordinates && 
+              !ride.dropoffLocation.cachedName && 
+              Array.isArray(ride.dropoffLocation.coordinates)) {
+            const dropoffName = await getLocationNameFromCoordinates(ride.dropoffLocation.coordinates);
+            
+            if (dropoffName) {
+              updatedAnyLocation = true;
+              updatedRide.dropoffLocation = {
+                ...ride.dropoffLocation,
+                cachedName: dropoffName
+              };
+            }
+          }
+          
+          return updatedRide;
+        })
+      );
+      
+      // Then update the selected ride if it exists
+      let updatedSelectedRide = selectedRide;
+      if (selectedRide) {
+        updatedSelectedRide = { ...selectedRide };
+        
+        // Try to update pickup location name
+        if (selectedRide.pickupLocation?.coordinates && 
+            !selectedRide.pickupLocation.cachedName && 
+            Array.isArray(selectedRide.pickupLocation.coordinates)) {
+          const pickupName = await getLocationNameFromCoordinates(selectedRide.pickupLocation.coordinates);
+          
+          if (pickupName) {
+            updatedAnyLocation = true;
+            updatedSelectedRide.pickupLocation = {
+              ...selectedRide.pickupLocation,
+              cachedName: pickupName
+            };
+          }
+        }
+        
+        // Try to update dropoff location name
+        if (selectedRide.dropoffLocation?.coordinates && 
+            !selectedRide.dropoffLocation.cachedName && 
+            Array.isArray(selectedRide.dropoffLocation.coordinates)) {
+          const dropoffName = await getLocationNameFromCoordinates(selectedRide.dropoffLocation.coordinates);
+          
+          if (dropoffName) {
+            updatedAnyLocation = true;
+            updatedSelectedRide.dropoffLocation = {
+              ...selectedRide.dropoffLocation,
+              cachedName: dropoffName
+            };
+          }
+        }
+      }
+      
+      // Only update state if any locations were updated
+      if (updatedAnyLocation) {
+        setMyRides(ridesWithUpdatedLocations);
+        if (selectedRide) {
+          setSelectedRide(updatedSelectedRide);
+        }
+      }
+    };
+    
+    if ((myRides.length > 0 || selectedRide) && GOOGLE_MAPS_API_KEY) {
+      updateLocationNames();
+    }
+  }, [myRides, selectedRide, getLocationNameFromCoordinates, GOOGLE_MAPS_API_KEY]);
 
   const fetchMyRides = async () => {
     if (!user) return;
@@ -285,27 +436,32 @@ export default function MyRides() {
     }
   };
 
-  // Function to get a formatted location string
+  // Enhanced getLocationString to use Google Maps API data
   const getLocationString = (location) => {
     if (!location) return 'N/A';
     
-    // First priority: Check if there's an address
+    // First priority: Check if we have a cached name from Google Maps API
+    if (location.cachedName) {
+      return location.cachedName;
+    }
+    
+    // Second priority: Check if there's an address
     if (location.address) {
       return location.address;
     }
     
-    // Second priority: Check if there's a name
+    // Third priority: Check if there's a name
     if (location.name) {
       return location.name;
     }
     
-    // Third priority: Check for coordinates
+    // Fourth priority: Check for coordinates
     if (location.coordinates && Array.isArray(location.coordinates)) {
-      // Don't display raw coordinates to the user, show a more friendly message
-      return 'Location coordinates available';
+      // Instead of just showing a message, trigger geocoding (will be handled by useEffect)
+      return 'Loading location...';
     }
     
-    // Fourth priority: If location is just a string
+    // Fifth priority: If location is just a string
     if (typeof location === 'string') {
       return location;
     }
@@ -387,6 +543,7 @@ export default function MyRides() {
                             {ride.availableSeats || ride.seatsAvailable} seats available
                           </p>
                           <div className="mt-2 flex items-center text-sm text-gray-500">
+                            <MapPinIcon className="h-4 w-4 mr-1 flex-shrink-0 text-gray-400" />
                             <span className="truncate max-w-full">{pickupDisplay} → {dropoffDisplay}</span>
                           </div>
                         </div>
@@ -514,27 +671,66 @@ export default function MyRides() {
                 
                 <div className="mt-6">
                   <h3 className="text-sm font-medium text-gray-500">Pickup Location</h3>
-                  <p className="mt-1 text-md break-words">
-                    {getLocationString(selectedRide.pickupLocation)}
-                    {selectedRide.pickupLocation?.coordinates && (
-                      <span className="block text-xs text-gray-500 mt-1 break-all">
+                  <p className="mt-1 text-md break-words flex items-start">
+                    <MapPinIcon className="h-4 w-4 mt-0.5 mr-1 flex-shrink-0 text-gray-400" />
+                    <span>{getLocationString(selectedRide.pickupLocation)}</span>
+                  </p>
+                  {selectedRide.pickupLocation?.coordinates && (
+                    <div className="mt-1">
+                      <span className="block text-xs text-gray-500 break-all">
                         Coordinates: [{selectedRide.pickupLocation.coordinates.join(', ')}]
                       </span>
-                    )}
-                  </p>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${selectedRide.pickupLocation.coordinates[1]},${selectedRide.pickupLocation.coordinates[0]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:text-primary/80 inline-flex items-center mt-1"
+                      >
+                        View on Google Maps
+                      </a>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mt-3">
                   <h3 className="text-sm font-medium text-gray-500">Dropoff Location</h3>
-                  <p className="mt-1 text-md break-words">
-                    {getLocationString(selectedRide.dropoffLocation)}
-                    {selectedRide.dropoffLocation?.coordinates && (
-                      <span className="block text-xs text-gray-500 mt-1 break-all">
+                  <p className="mt-1 text-md break-words flex items-start">
+                    <MapPinIcon className="h-4 w-4 mt-0.5 mr-1 flex-shrink-0 text-gray-400" />
+                    <span>{getLocationString(selectedRide.dropoffLocation)}</span>
+                  </p>
+                  {selectedRide.dropoffLocation?.coordinates && (
+                    <div className="mt-1">
+                      <span className="block text-xs text-gray-500 break-all">
                         Coordinates: [{selectedRide.dropoffLocation.coordinates.join(', ')}]
                       </span>
-                    )}
-                  </p>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${selectedRide.dropoffLocation.coordinates[1]},${selectedRide.dropoffLocation.coordinates[0]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:text-primary/80 inline-flex items-center mt-1"
+                      >
+                        View on Google Maps
+                      </a>
+                    </div>
+                  )}
                 </div>
+                
+                {selectedRide.pickupLocation?.coordinates && selectedRide.dropoffLocation?.coordinates && (
+                  <div className="mt-3">
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${
+                        selectedRide.pickupLocation.coordinates[1]},${selectedRide.pickupLocation.coordinates[0]
+                      }&destination=${
+                        selectedRide.dropoffLocation.coordinates[1]},${selectedRide.dropoffLocation.coordinates[0]
+                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:text-primary/80 inline-flex items-center"
+                    >
+                      <span>View route on Google Maps</span>
+                    </a>
+                  </div>
+                )}
               </div>
               
               {/* Passenger requests section */}
