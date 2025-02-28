@@ -35,8 +35,8 @@ export default function Rides() {
     pickupAddress: '',
     dropoffAddress: ''
   });
-  const [showPickupMap, setShowPickupMap] = useState(true);
-  const [showDropoffMap, setShowDropoffMap] = useState(true);
+  const [showPickupMap, setShowPickupMap] = useState(false);
+  const [showDropoffMap, setShowDropoffMap] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
