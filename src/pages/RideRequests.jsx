@@ -10,7 +10,13 @@ import {
   ClockIcon,
   XCircleIcon,
   ArrowPathIcon,
-  MapPinIcon
+  MapPinIcon,
+  ChevronDownIcon,
+  AdjustmentsHorizontalIcon,
+  CalendarIcon,
+  UserCircleIcon,
+  CurrencyDollarIcon,
+  UsersIcon
 } from '@heroicons/react/24/outline';
 
 export default function RideRequests() {
@@ -22,6 +28,7 @@ export default function RideRequests() {
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [locationCache, setLocationCache] = useState({});
+  const [showFilters, setShowFilters] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -680,7 +687,7 @@ export default function RideRequests() {
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-4 sm:p-6 border-b border-gray-200">
         <h2 className="text-xl font-semibold">My Ride Requests</h2>
         <p className="mt-1 text-sm text-gray-500">
           View and manage your ride requests
@@ -689,7 +696,8 @@ export default function RideRequests() {
 
       {loading ? (
         <div className="p-8 text-center">
-          <p className="text-gray-500">Loading your ride requests...</p>
+          <div className="animate-spin mx-auto h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <p className="mt-4 text-gray-500">Loading your ride requests...</p>
         </div>
       ) : error ? (
         <div className="p-8 text-center">
@@ -715,75 +723,132 @@ export default function RideRequests() {
         </div>
       ) : (
         <div>
-          {/* Status filter buttons and refresh button */}
-          <div className="px-6 py-4 flex flex-wrap items-center justify-between">
-            <div className="flex flex-wrap gap-2">
+          {/* Filter bar - Collapsible on mobile */}
+          <div className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
               <button 
-                onClick={() => setStatusFilter('all')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  statusFilter === 'all'
-                    ? 'bg-gray-200 text-gray-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 md:hidden"
               >
-                All Requests
+                <AdjustmentsHorizontalIcon className="h-5 w-5" />
+                <span>Filters</span>
+                <ChevronDownIcon className={`h-4 w-4 transition-transform ${showFilters ? 'transform rotate-180' : ''}`} />
               </button>
-              <button
-                onClick={() => setStatusFilter('pending')}
-                className={`px-4 py-2 flex items-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
-                  statusFilter === 'pending'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
-                }`}
-              >
-                <ClockIcon className="h-4 w-4" />
-                Pending
-              </button>
-              <button
-                onClick={() => setStatusFilter('confirmed')}
-                className={`px-4 py-2 flex items-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
-                  statusFilter === 'confirmed'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-green-50 text-green-700 hover:bg-green-100'
-                }`}
-              >
-                <CheckCircleIcon className="h-4 w-4" />
-                Confirmed
-              </button>
-              <button
-                onClick={() => setStatusFilter('rejected')}
-                className={`px-4 py-2 flex items-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
-                  statusFilter === 'rejected'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-red-50 text-red-700 hover:bg-red-100'
-                }`}
-              >
-                <XCircleIcon className="h-4 w-4" />
-                Rejected
-              </button>
+              
+              {/* Always visible on md screens and up */}
+              <div className="hidden md:flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Status:</span>
+                <button 
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'all'
+                      ? 'bg-gray-200 text-gray-800'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setStatusFilter('pending')}
+                  className={`px-3 py-1.5 flex items-center gap-1 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                  }`}
+                >
+                  <ClockIcon className="h-3.5 w-3.5" />
+                  Pending
+                </button>
+                <button
+                  onClick={() => setStatusFilter('confirmed')}
+                  className={`px-3 py-1.5 flex items-center gap-1 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'confirmed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  }`}
+                >
+                  <CheckCircleIcon className="h-3.5 w-3.5" />
+                  Confirmed
+                </button>
+                <button
+                  onClick={() => setStatusFilter('rejected')}
+                  className={`px-3 py-1.5 flex items-center gap-1 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-red-50 text-red-700 hover:bg-red-100'
+                  }`}
+                >
+                  <XCircleIcon className="h-3.5 w-3.5" />
+                  Rejected
+                </button>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={forceRefreshAllStatuses}
+                  disabled={refreshing || loading || requests.length === 0}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-primary/10 text-primary rounded-md text-xs font-medium hover:bg-primary/20 transition-colors"
+                  title="Check latest status from server for all rides"
+                >
+                  <ArrowPathIcon className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+              </div>
             </div>
             
-            <button
-              onClick={refreshRideRequests}
-              disabled={refreshing}
-              className="flex items-center gap-1.5 px-3 py-2 bg-primary/10 text-primary rounded-md text-sm font-medium hover:bg-primary/20 transition-colors"
-            >
-              <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            
-            <button
-              onClick={forceRefreshAllStatuses}
-              disabled={refreshing || loading || requests.length === 0}
-              className="flex items-center gap-1.5 px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors ml-2"
-              title="Force check latest status from server for all rides"
-            >
-              <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Force Update Status
-            </button>
+            {/* Mobile filters - Collapsible */}
+            <div className={`mt-3 md:hidden transition-all duration-300 overflow-hidden ${showFilters ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="flex flex-wrap gap-2 py-2">
+                <span className="text-sm font-medium text-gray-700 w-full">Filter by status:</span>
+                <button 
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'all'
+                      ? 'bg-gray-200 text-gray-800'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  All Requests
+                </button>
+                <button
+                  onClick={() => setStatusFilter('pending')}
+                  className={`px-3 py-1.5 flex items-center gap-1 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                  }`}
+                >
+                  <ClockIcon className="h-3.5 w-3.5" />
+                  Pending
+                </button>
+                <button
+                  onClick={() => setStatusFilter('confirmed')}
+                  className={`px-3 py-1.5 flex items-center gap-1 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'confirmed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  }`}
+                >
+                  <CheckCircleIcon className="h-3.5 w-3.5" />
+                  Confirmed
+                </button>
+                <button
+                  onClick={() => setStatusFilter('rejected')}
+                  className={`px-3 py-1.5 flex items-center gap-1 rounded-md text-xs font-medium transition-colors ${
+                    statusFilter === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-red-50 text-red-700 hover:bg-red-100'
+                  }`}
+                >
+                  <XCircleIcon className="h-3.5 w-3.5" />
+                  Rejected
+                </button>
+              </div>
+            </div>
           </div>
           
-          <div className="overflow-x-auto">
+          {/* Desktop view - Table (hidden on mobile) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -911,6 +976,116 @@ export default function RideRequests() {
                 })}
               </tbody>
             </table>
+          </div>
+          
+          {/* Mobile view - Cards (visible on mobile only) */}
+          <div className="md:hidden">
+            {filteredRequests.map((request) => {
+              const requestId = request.id || request._id;
+              const ride = request.ride || request;
+              const rideId = ride.id || ride._id;
+              const status = request.status || 'pending';
+              
+              // Get ride details
+              const departureTime = formatDate(ride.departureTime || ride.time);
+              const driverName = getDriverName(ride);
+              const seats = ride.availableSeats || ride.seatsAvailable || 0;
+              const price = ride.price?.toFixed(2) || '0.00';
+              
+              // Get location details
+              const pickup = getLocationString(ride.pickupLocation);
+              const dropoff = getLocationString(ride.dropoffLocation);
+              
+              return (
+                <div 
+                  key={requestId} 
+                  className={`p-4 border-b ${
+                    status === 'confirmed' ? 'bg-green-50/30' : 
+                    status === 'rejected' ? 'bg-red-50/30' : 
+                    status === 'cancelled' ? 'bg-gray-50/50' : 
+                    ''
+                  }`}
+                >
+                  {/* Status badge at the top */}
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border ${getStatusBadgeClass(status)}`}>
+                      {getStatusIcon(status)}
+                      {formatStatusText(status)}
+                    </span>
+                    
+                    <div className="flex items-center text-sm font-medium text-gray-700">
+                      <CurrencyDollarIcon className="h-4 w-4 mr-1 text-gray-500" />
+                      ${price}
+                    </div>
+                  </div>
+                  
+                  {/* Departure time */}
+                  <div className="flex items-center text-sm font-medium text-gray-900 mb-2">
+                    <CalendarIcon className="h-4 w-4 mr-2 text-gray-500" />
+                    {departureTime}
+                  </div>
+                  
+                  {/* Locations */}
+                  <div className="flex mb-3">
+                    <MapPinIcon className="h-4 w-4 mt-0.5 mr-2 flex-shrink-0 text-gray-500" />
+                    <div className="text-sm text-gray-700">
+                      <div className="font-medium">{pickup}</div>
+                      <div className="h-4 border-l-2 border-dashed border-gray-300 ml-1.5 my-1"></div>
+                      <div>{dropoff}</div>
+                    </div>
+                  </div>
+                  
+                  {/* Driver & Seats */}
+                  <div className="flex justify-between text-sm mb-3">
+                    <div className="flex items-center">
+                      <UserCircleIcon className="h-4 w-4 mr-1.5 text-gray-500" />
+                      <span className="text-gray-700">{driverName}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <UsersIcon className="h-4 w-4 mr-1.5 text-gray-500" />
+                      <span className="text-gray-700">{seats} seats</span>
+                    </div>
+                  </div>
+                  
+                  {/* Map link */}
+                  {(ride.pickupLocation?.coordinates || ride.dropoffLocation?.coordinates) && (
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${
+                        ride.pickupLocation?.coordinates ? `${ride.pickupLocation.coordinates[1]},${ride.pickupLocation.coordinates[0]}` : ''
+                      }&destination=${
+                        ride.dropoffLocation?.coordinates ? `${ride.dropoffLocation.coordinates[1]},${ride.dropoffLocation.coordinates[0]}` : ''
+                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:text-primary/80 inline-flex items-center mb-3"
+                    >
+                      <span>View route on Google Maps</span>
+                    </a>
+                  )}
+                  
+                  {/* Action buttons */}
+                  <div className="flex justify-between mt-3 pt-3 border-t border-gray-100">
+                    <button
+                      onClick={() => navigate(`/rides/${rideId}`)}
+                      className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm font-medium"
+                    >
+                      View Details
+                    </button>
+                    
+                    {status === 'pending' && (
+                      <button
+                        onClick={() => handleCancelRequest(request.id || request._id)}
+                        disabled={actionLoading}
+                        className="px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-sm font-medium flex items-center"
+                      >
+                        <XMarkIcon className="h-4 w-4 mr-1" />
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
           
           {filteredRequests.length === 0 && (
