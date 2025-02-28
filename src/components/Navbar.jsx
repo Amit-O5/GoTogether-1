@@ -142,19 +142,41 @@ export default function Navbar() {
         <>
           <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
             <div className="flex h-16 sm:h-16 md:h-16 justify-between items-center">
+              {/* Logo section - takes left side on all screens */}
               <div className="flex items-center">
                 <Link to={isAuthenticated ? '/rides' : '/'} className="flex flex-shrink-0 items-center">
                   <span className="text-xl sm:text-2xl font-bold text-primary">GoTogether</span>
                 </Link>
-                <div className="hidden sm:ml-4 md:ml-6 sm:flex sm:space-x-4 md:space-x-8">
+                
+                {/* Navigation items - visible on sm+ but positioned differently on lg+ */}
+                <div className="hidden sm:ml-4 md:ml-6 sm:flex sm:space-x-4 md:space-x-8 lg:hidden">
                   {getNavItems().map((item) => (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`inline-flex items-center px-1 pt-1 text-xs sm:text-sm font-medium border-b-2 ${
+                      className={`inline-flex items-center px-1 pt-4 text-xs sm:text-sm font-medium border-b-2 ${
                         isActive(item.href)
-                          ? 'border-primary text-primary'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                          ? 'border-primary text-primary lg:pb-5 lg:border-b-[3px] lg:border-b-primary lg:text-lg lg:font-semibold'
+                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 lg:pb-3 lg:text-base'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Centered navigation for large screens only */}
+              <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-1">
+                <div className="flex space-x-8">
+                  {getNavItems().map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`inline-flex items-center px-1 pt-4 text-base font-medium border-b-2 ${
+                        isActive(item.href)
+                          ? 'border-primary text-primary pb-5 border-b-[3px] border-b-primary text-lg font-semibold'
+                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 pb-3'
                       }`}
                     >
                       {item.name}
@@ -348,7 +370,7 @@ export default function Navbar() {
                             leaveFrom="transform opacity-100 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                           >
-                            <Menu.Items className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                            <Menu.Items className="absolute right-[-30px] sm:right-0 z-10 mt-2 w-64 sm:w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                               <div className="px-4 py-2.5 text-sm font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-md">
                                 <span>Notifications</span>
                                 {unreadCount > 0 && (
