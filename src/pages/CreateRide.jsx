@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { rides } from '../services/api';
 import { toast } from 'react-hot-toast';
@@ -33,9 +33,26 @@ export default function CreateRide() {
   const [showPickupMap, setShowPickupMap] = useState(false);
   const [showDropoffMap, setShowDropoffMap] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Detect if the device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    // Check initially
+    checkMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
@@ -91,31 +108,33 @@ export default function CreateRide() {
   const openGoogleMaps = (type) => {
     // Toggle map visibility
     if (type === 'pickup') {
-      // If map is already showing, close it
-      if (showPickupMap) {
-        setShowPickupMap(false);
-        return;
+      const newState = !showPickupMap;
+      setShowPickupMap(newState);
+      
+      // On mobile, we want to prevent scrolling of the background when map is open
+      if (isMobile && newState) {
+        document.body.style.overflow = 'hidden';
+      } else if (isMobile) {
+        document.body.style.overflow = '';
       }
       
-      // Always show the map on the current page, don't open in new tab
-      setShowPickupMap(true);
-      
-      // Show a hint to the user if opening map without coordinates
-      if (!formData.pickupLocation.coordinates[0] || !formData.pickupLocation.coordinates[1]) {
+      // Show a hint to the user if opening map without coordinates on non-mobile
+      if (newState && !formData.pickupLocation.coordinates[0] && !formData.pickupLocation.coordinates[1] && !isMobile) {
         toast.info('Please select a pickup location on the map or use your current location.');
       }
     } else if (type === 'dropoff') {
-      // If map is already showing, close it
-      if (showDropoffMap) {
-        setShowDropoffMap(false);
-        return;
+      const newState = !showDropoffMap;
+      setShowDropoffMap(newState);
+      
+      // On mobile, we want to prevent scrolling of the background when map is open
+      if (isMobile && newState) {
+        document.body.style.overflow = 'hidden';
+      } else if (isMobile) {
+        document.body.style.overflow = '';
       }
       
-      // Always show the map on the current page, don't open in new tab
-      setShowDropoffMap(true);
-      
-      // Show a hint to the user if opening map without coordinates
-      if (!formData.dropoffLocation.coordinates[0] || !formData.dropoffLocation.coordinates[1]) {
+      // Show a hint to the user if opening map without coordinates on non-mobile
+      if (newState && !formData.dropoffLocation.coordinates[0] && !formData.dropoffLocation.coordinates[1] && !isMobile) {
         toast.info('Please select a dropoff location on the map or use your current location.');
       }
     }
@@ -188,6 +207,18 @@ export default function CreateRide() {
     } catch (error) {
       console.error('Error fetching address:', error);
     }
+  };
+  
+  // Handle map closing from the GoogleMapPicker component
+  const handleMapClose = (type) => {
+    if (type === 'pickup') {
+      setShowPickupMap(false);
+    } else {
+      setShowDropoffMap(false);
+    }
+    
+    // Ensure scrolling is restored
+    document.body.style.overflow = '';
   };
   
   // Handle location selection from map
@@ -304,10 +335,10 @@ export default function CreateRide() {
                   </div>
                   
                   {showPickupMap && (
-                    <div className="mb-4">
+                    <div className={`${isMobile ? 'absolute inset-0 z-50' : 'mb-4'}`}>
                       <GoogleMapPicker
                         initialPosition={
-                          formData.pickupLocation.coordinates[0] && formData.pickupLocation.coordinates[1]
+                          formData.pickupLocation.coordinates[1] && formData.pickupLocation.coordinates[0]
                             ? {
                                 lat: parseFloat(formData.pickupLocation.coordinates[1]),
                                 lng: parseFloat(formData.pickupLocation.coordinates[0])
@@ -316,6 +347,8 @@ export default function CreateRide() {
                         }
                         onLocationSelect={handleLocationSelect}
                         type="pickup"
+                        isMobile={isMobile}
+                        onClose={isMobile ? () => handleMapClose('pickup') : undefined}
                       />
                     </div>
                   )}
@@ -391,10 +424,10 @@ export default function CreateRide() {
                   </div>
                   
                   {showDropoffMap && (
-                    <div className="mb-4">
+                    <div className={`${isMobile ? 'absolute inset-0 z-50' : 'mb-4'}`}>
                       <GoogleMapPicker
                         initialPosition={
-                          formData.dropoffLocation.coordinates[0] && formData.dropoffLocation.coordinates[1]
+                          formData.dropoffLocation.coordinates[1] && formData.dropoffLocation.coordinates[0]
                             ? {
                                 lat: parseFloat(formData.dropoffLocation.coordinates[1]),
                                 lng: parseFloat(formData.dropoffLocation.coordinates[0])
@@ -403,6 +436,8 @@ export default function CreateRide() {
                         }
                         onLocationSelect={handleLocationSelect}
                         type="dropoff"
+                        isMobile={isMobile}
+                        onClose={isMobile ? () => handleMapClose('dropoff') : undefined}
                       />
                     </div>
                   )}
