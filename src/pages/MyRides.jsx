@@ -10,7 +10,8 @@ import {
   ExclamationCircleIcon,
   ClockIcon,
   XCircleIcon,
-  MapPinIcon
+  MapPinIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 export default function MyRides() {
@@ -23,6 +24,7 @@ export default function MyRides() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
   const [locationCache, setLocationCache] = useState({});
+  const [showMobileModal, setShowMobileModal] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -267,13 +269,21 @@ export default function MyRides() {
     
     // Check if this ride is already selected
     if (rideId === selectedRideId) {
-      return; // Don't need to update state if the same ride is clicked
+      // On mobile, we still want to show the modal even if it's the same ride
+      setShowMobileModal(true);
+      return;
     }
     
     // Update both the selected ride object and its ID
     setSelectedRide(ride);
     setSelectedRideId(rideId);
+    setShowMobileModal(true); // Show modal on mobile when selecting a ride
     fetchRideDetails(rideId);
+  };
+
+  // Close the mobile modal
+  const closeMobileModal = () => {
+    setShowMobileModal(false);
   };
 
   // Handle request approval/rejection
@@ -562,8 +572,8 @@ export default function MyRides() {
           </div>
         </div>
         
-        {/* Right column - Ride details and passenger requests */}
-        <div className="lg:col-span-8">
+        {/* Right column - Ride details and passenger requests - Only visible on larger screens */}
+        <div className="lg:col-span-8 hidden lg:block">
           {selectedRide ? (
             <div className="bg-white rounded-lg shadow divide-y divide-gray-200 h-full">
               {/* Ride details section */}
@@ -672,7 +682,7 @@ export default function MyRides() {
                 <div className="mt-6">
                   <h3 className="text-sm font-medium text-gray-500">Pickup Location</h3>
                   <p className="mt-1 text-md break-words flex items-start">
-                    <MapPinIcon className="h-4 w-4 mt-0.5 mr-1 flex-shrink-0 text-gray-400" />
+                    <MapPinIcon className="h-5 w-5 mt-0.5 mr-1.5 flex-shrink-0 text-primary" />
                     <span>{getLocationString(selectedRide.pickupLocation)}</span>
                   </p>
                   {selectedRide.pickupLocation?.coordinates && (
@@ -680,14 +690,7 @@ export default function MyRides() {
                       <span className="block text-xs text-gray-500 break-all">
                         Coordinates: [{selectedRide.pickupLocation.coordinates.join(', ')}]
                       </span>
-                      <a 
-                        href={`https://www.google.com/maps/search/?api=1&query=${selectedRide.pickupLocation.coordinates[1]},${selectedRide.pickupLocation.coordinates[0]}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-primary hover:text-primary/80 inline-flex items-center mt-1"
-                      >
-                        View on Google Maps
-                      </a>
+                      
                     </div>
                   )}
                 </div>
@@ -695,7 +698,7 @@ export default function MyRides() {
                 <div className="mt-3">
                   <h3 className="text-sm font-medium text-gray-500">Dropoff Location</h3>
                   <p className="mt-1 text-md break-words flex items-start">
-                    <MapPinIcon className="h-4 w-4 mt-0.5 mr-1 flex-shrink-0 text-gray-400" />
+                    <MapPinIcon className="h-5 w-5 mt-0.5 mr-1.5 flex-shrink-0 text-red-500" />
                     <span>{getLocationString(selectedRide.dropoffLocation)}</span>
                   </p>
                   {selectedRide.dropoffLocation?.coordinates && (
@@ -703,20 +706,13 @@ export default function MyRides() {
                       <span className="block text-xs text-gray-500 break-all">
                         Coordinates: [{selectedRide.dropoffLocation.coordinates.join(', ')}]
                       </span>
-                      <a 
-                        href={`https://www.google.com/maps/search/?api=1&query=${selectedRide.dropoffLocation.coordinates[1]},${selectedRide.dropoffLocation.coordinates[0]}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-primary hover:text-primary/80 inline-flex items-center mt-1"
-                      >
-                        View on Google Maps
-                      </a>
+                      
                     </div>
                   )}
                 </div>
                 
                 {selectedRide.pickupLocation?.coordinates && selectedRide.dropoffLocation?.coordinates && (
-                  <div className="mt-3">
+                  <div className="mt-3 flex justify-center">
                     <a 
                       href={`https://www.google.com/maps/dir/?api=1&origin=${
                         selectedRide.pickupLocation.coordinates[1]},${selectedRide.pickupLocation.coordinates[0]
@@ -725,16 +721,16 @@ export default function MyRides() {
                       }`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-primary hover:text-primary/80 inline-flex items-center"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:text-primary hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary w-full sm:w-auto"
                     >
-                      <span>View route on Google Maps</span>
+                      <span>View Full Route on Google Maps</span>
                     </a>
                   </div>
                 )}
               </div>
               
               {/* Passenger requests section */}
-              <div className="p-6">
+              <div className="p-4 border-t border-gray-200">
                 <h2 className="text-xl font-semibold mb-4">Passenger Requests</h2>
                 
                 {requestsLoading ? (
@@ -835,6 +831,301 @@ export default function MyRides() {
           )}
         </div>
       </div>
+      
+      {/* Mobile Ride Details Modal */}
+      {selectedRide && showMobileModal && (
+        <div className="fixed inset-0 z-50 lg:hidden overflow-y-auto">
+          <div className="min-h-screen px-4 flex items-end justify-center sm:block">
+            {/* Background overlay with animation */}
+            <div 
+              className="fixed inset-0 transition-opacity duration-300" 
+              aria-hidden="true"
+              onClick={closeMobileModal}
+            >
+              <div className="absolute inset-0 bg-gray-700 opacity-75 backdrop-blur-sm"></div>
+            </div>
+            
+            {/* Modal panel with animation */}
+            <div className="bg-white rounded-t-2xl sm:rounded-xl overflow-hidden shadow-2xl transform transition-all duration-300 ease-out w-full sm:max-w-lg sm:mx-auto max-h-[92vh] overflow-y-auto translate-y-0 sm:translate-y-0 animate-slide-up">
+              {/* Modal header with close button */}
+              <div className="sticky top-0 z-10 bg-white border-b border-gray-100 shadow-sm">
+                <div className="flex justify-between items-center p-4">
+                  <h2 className="text-xl font-semibold text-gray-800 tracking-tight">Ride Details</h2>
+                  <button
+                    type="button"
+                    className="rounded-full p-1.5 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                    onClick={closeMobileModal}
+                  >
+                    <span className="sr-only">Close</span>
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Modal content - Ride Details */}
+              <div className="p-5 bg-gradient-to-b from-gray-50 to-white">
+                <div className="mb-5">
+                  {selectedRide.status === 'active' && (
+                    <div className="flex space-x-3 justify-end">
+                      <button
+                        onClick={() => handleEditRide(selectedRide.id || selectedRide._id)}
+                        disabled={actionLoading}
+                        className="inline-flex items-center p-2 border border-gray-200 rounded-full text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm"
+                        title="Edit Ride"
+                      >
+                        <PencilIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleCancelRide(selectedRide.id || selectedRide._id)}
+                        disabled={actionLoading}
+                        className="inline-flex items-center p-2 border border-gray-200 rounded-full text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm"
+                        title="Cancel Ride"
+                      >
+                        <TrashIcon className="h-5 w-5 text-red-500" />
+                      </button>
+                      <button
+                        onClick={() => handleCompleteRide(selectedRide.id || selectedRide._id)}
+                        disabled={actionLoading}
+                        className="inline-flex items-center p-2 border border-gray-200 rounded-full text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm"
+                        title="Mark as Completed"
+                      >
+                        <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Departure</h3>
+                      <p className="mt-1 text-lg font-medium text-gray-800">
+                        {formatDate(selectedRide.departureTime || selectedRide.time)}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                      <p className="mt-1 text-lg font-medium text-gray-800">
+                        ${selectedRide.price?.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Available Seats</h3>
+                      <p className="mt-1 text-lg font-medium text-gray-800">
+                        {selectedRide.availableSeats || selectedRide.seatsAvailable || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                      <p className={`mt-1 inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedRide.status)}`}>
+                        {selectedRide.status || 'active'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Car Details</h3>
+                    <p className="mt-1 text-md text-gray-800 font-medium">
+                      {selectedRide.carModel || 'Not specified'} {selectedRide.carNumber ? `- ${selectedRide.carNumber}` : ''}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-gray-500">Preferences</h3>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedRide.preferences?.smoking !== undefined && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedRide.preferences.smoking 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          {selectedRide.preferences.smoking ? 'Smoking allowed' : 'No smoking'}
+                        </span>
+                      )}
+                      {selectedRide.preferences?.pets !== undefined && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedRide.preferences.pets 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          {selectedRide.preferences.pets ? 'Pets allowed' : 'No pets'}
+                        </span>
+                      )}
+                      {selectedRide.preferences?.alcohol !== undefined && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedRide.preferences.alcohol 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          {selectedRide.preferences.alcohol ? 'Alcohol allowed' : 'No alcohol'}
+                        </span>
+                      )}
+                      {selectedRide.preferences?.gender && selectedRide.preferences.gender !== 'any' && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                          {selectedRide.preferences.gender === 'male' ? 'Male passengers only' : 'Female passengers only'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium text-gray-500 mb-2">Pickup Location</h3>
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="text-md break-words flex items-start text-gray-800">
+                        <MapPinIcon className="h-5 w-5 mt-0.5 mr-1.5 flex-shrink-0 text-primary" />
+                        <span>{getLocationString(selectedRide.pickupLocation)}</span>
+                      </p>
+                      {selectedRide.pickupLocation?.coordinates && (
+                        <div className="mt-2 ml-6">
+                          <span className="block text-xs text-gray-500 break-all">
+                            Coordinates: [{selectedRide.pickupLocation.coordinates.join(', ')}]
+                          </span>
+                          
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-2">Dropoff Location</h3>
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="text-md break-words flex items-start text-gray-800">
+                        <MapPinIcon className="h-5 w-5 mt-0.5 mr-1.5 flex-shrink-0 text-red-500" />
+                        <span>{getLocationString(selectedRide.dropoffLocation)}</span>
+                      </p>
+                      {selectedRide.dropoffLocation?.coordinates && (
+                        <div className="mt-2 ml-6">
+                          <span className="block text-xs text-gray-500 break-all">
+                            Coordinates: [{selectedRide.dropoffLocation.coordinates.join(', ')}]
+                          </span>
+                          
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {selectedRide.pickupLocation?.coordinates && selectedRide.dropoffLocation?.coordinates && (
+                    <div className="mt-3 flex justify-center">
+                      <a 
+                        href={`https://www.google.com/maps/dir/?api=1&origin=${
+                          selectedRide.pickupLocation.coordinates[1]},${selectedRide.pickupLocation.coordinates[0]
+                        }&destination=${
+                          selectedRide.dropoffLocation.coordinates[1]},${selectedRide.dropoffLocation.coordinates[0]
+                        }`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:text-primary hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary w-full sm:w-auto"
+                      >
+                        <span>View Full Route on Google Maps</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Passenger requests section */}
+              <div className="p-5 border-t border-gray-200 bg-white">
+                <h2 className="text-xl font-semibold mb-4 text-gray-800">Passenger Requests</h2>
+                
+                {requestsLoading ? (
+                  <div className="text-center py-6 bg-gray-50 rounded-xl">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-10 w-10 bg-gray-200 rounded-full mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/3 mb-2.5"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                    <p className="mt-4 text-gray-500">Loading requests...</p>
+                  </div>
+                ) : pendingRequests.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl">
+                    <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <p className="mt-2 text-gray-500">No passenger requests yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingRequests.map((request) => {
+                      const userId = getUserId(request);
+                      const name = getUserName(request);
+                      const status = request.status || 'pending';
+                      const initial = getUserInitial(request);
+                      
+                      return (
+                        <div 
+                          key={userId}
+                          className="flex items-center justify-between p-4 border border-gray-100 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow flex-wrap gap-3"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="h-11 w-11 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                              {initial}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800">{name}</p>
+                              <div className="mt-1">
+                                {status === 'confirmed' && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    <CheckCircleIcon className="mr-1 h-3 w-3 text-green-600" />
+                                    Confirmed
+                                  </span>
+                                )}
+                                {status === 'rejected' && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                    <XCircleIcon className="mr-1 h-3 w-3 text-red-600" />
+                                    Rejected
+                                  </span>
+                                )}
+                                {status === 'pending' && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                    <ClockIcon className="mr-1 h-3 w-3 text-yellow-600" />
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {status === 'pending' && selectedRide.status === 'active' && (
+                            <div className="flex space-x-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleRequestAction(userId, 'confirmed')}
+                                disabled={actionLoading}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleRequestAction(userId, 'rejected')}
+                                disabled={actionLoading}
+                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              
+              {/* Close button at the bottom for easier access on tall phones */}
+              <div className="sticky bottom-0 p-4 border-t border-gray-200 flex justify-center bg-white shadow-inner">
+                <button
+                  onClick={closeMobileModal}
+                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 font-medium transition-colors flex justify-center items-center space-x-1 shadow-sm"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  <span>Close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
