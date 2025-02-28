@@ -16,6 +16,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 
+// Google Maps API key (should be in an environment variable in production)
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
 export default function RideDetail() {
   const { id } = useParams();
   const [ride, setRide] = useState(null);
@@ -29,6 +32,11 @@ export default function RideDetail() {
   const [error, setError] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Location state for geocoding
+  const [pickupLocationName, setPickupLocationName] = useState('');
+  const [dropoffLocationName, setDropoffLocationName] = useState('');
+  const [locationsLoading, setLocationsLoading] = useState(false);
 
   // Add state for reporting
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -86,6 +94,15 @@ export default function RideDetail() {
           }
         }
       }
+
+      // Get human-readable addresses for coordinates
+      if (rideData.pickupLocation && rideData.pickupLocation.coordinates) {
+        geocodeLocation(rideData.pickupLocation.coordinates, 'pickup');
+      }
+      
+      if (rideData.dropoffLocation && rideData.dropoffLocation.coordinates) {
+        geocodeLocation(rideData.dropoffLocation.coordinates, 'dropoff');
+      }
       
     } catch (error) {
       console.error('Failed to fetch ride details:', error);
@@ -103,6 +120,37 @@ export default function RideDetail() {
       toast.error(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to convert coordinates to address using Google Geocoding API
+  const geocodeLocation = async (coordinates, locationType) => {
+    if (!GOOGLE_MAPS_API_KEY || !coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) {
+      return;
+    }
+
+    try {
+      setLocationsLoading(true);
+      const [lng, lat] = coordinates;
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`
+      );
+      
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const formattedAddress = data.results[0].formatted_address;
+        
+        if (locationType === 'pickup') {
+          setPickupLocationName(formattedAddress);
+        } else if (locationType === 'dropoff') {
+          setDropoffLocationName(formattedAddress);
+        }
+      }
+    } catch (error) {
+      console.error(`Error geocoding ${locationType} location:`, error);
+    } finally {
+      setLocationsLoading(false);
     }
   };
 
@@ -255,20 +303,24 @@ export default function RideDetail() {
   const getLocationString = (location) => {
     if (!location) return 'N/A';
     
-    // First priority: Check if there's an address
+    // First priority: Use the geocoded address for coordinates
+    if (location.coordinates && Array.isArray(location.coordinates)) {
+      if (location === ride.pickupLocation && pickupLocationName) {
+        return pickupLocationName;
+      }
+      if (location === ride.dropoffLocation && dropoffLocationName) {
+        return dropoffLocationName;
+      }
+    }
+    
+    // Second priority: Check if there's an address
     if (location.address) {
       return location.address;
     }
     
-    // Second priority: Check if there's a name
+    // Third priority: Check if there's a name
     if (location.name) {
       return location.name;
-    }
-    
-    // Third priority: Check for coordinates
-    if (location.coordinates && Array.isArray(location.coordinates)) {
-      // Don't display raw coordinates to the user, show a more friendly message
-      return 'Location coordinates available';
     }
     
     // Fourth priority: If location is just a string
@@ -276,7 +328,7 @@ export default function RideDetail() {
       return location;
     }
     
-    return 'N/A';
+    return 'Location details unavailable';
   };
 
   // Check if the current user is the driver of this ride
@@ -420,15 +472,20 @@ export default function RideDetail() {
                 <h1 className="text-2xl font-bold text-gray-900">
                   Ride from {getLocationString(ride.pickupLocation)}
                 </h1>
-                {ride.pickupLocation?.coordinates && (
-                  <p className="text-xs text-gray-500">
-                    Pickup coordinates: [{ride.pickupLocation.coordinates.join(', ')}]
+                {locationsLoading && (
+                  <p className="text-xs text-gray-500 animate-pulse">
+                    Loading location details...
                   </p>
                 )}
                 <p className="mt-1 text-lg text-gray-600">
                   To {getLocationString(ride.dropoffLocation)}
                 </p>
-                {ride.dropoffLocation?.coordinates && (
+                {ride.pickupLocation?.coordinates && !pickupLocationName && (
+                  <p className="text-xs text-gray-500">
+                    Pickup coordinates: [{ride.pickupLocation.coordinates.join(', ')}]
+                  </p>
+                )}
+                {ride.dropoffLocation?.coordinates && !dropoffLocationName && (
                   <p className="text-xs text-gray-500">
                     Dropoff coordinates: [{ride.dropoffLocation.coordinates.join(', ')}]
                   </p>
@@ -718,16 +775,27 @@ export default function RideDetail() {
             )}
 
             {/* Report User button */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Driver Information</h2>
-              {user && ride && user.id !== (driver?.id || ride.creator?.id || ride.creator) && (
-                <button
-                  type="button"
-                  onClick={() => setReportModalOpen(true)}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Report User
-                </button>
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-medium text-gray-900">Driver Information</h2>
+                {user && ride && user.id !== (driver?.id || ride.creator?.id || ride.creator) && (
+                  <button
+                    type="button"
+                    onClick={() => setReportModalOpen(true)}
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-150"
+                  >
+                    <ExclamationTriangleIcon className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                    Report Issue
+                  </button>
+                )}
+              </div>
+              {driver && (
+                <div className="mt-4 space-y-2">
+                  {/* Driver information can be expanded here */}
+                  <p className="text-sm text-gray-500">
+                    Contact the driver or report any issues related to this ride.
+                  </p>
+                </div>
               )}
             </div>
           </div>

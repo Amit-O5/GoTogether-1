@@ -889,21 +889,6 @@ export default function RideRequests() {
                   const pickup = getLocationString(ride.pickupLocation);
                   const dropoff = getLocationString(ride.dropoffLocation);
                   
-                  // Get status description
-                  const getStatusDescription = () => {
-                    switch(status) {
-                      case 'confirmed':
-                        return 'Your ride request has been approved by the driver.';
-                      case 'rejected':
-                        return 'Your ride request was declined by the driver.';
-                      case 'cancelled':
-                        return 'This ride request has been cancelled.';
-                      case 'pending':
-                      default:
-                        return 'Waiting for driver approval.';
-                    }
-                  };
-                  
                   return (
                     <tr key={requestId} className={`hover:bg-gray-50 ${
                       status === 'confirmed' ? 'bg-green-50/30' : 
@@ -938,7 +923,6 @@ export default function RideRequests() {
                             {getStatusIcon(status)}
                             {formatStatusText(status)}
                           </span>
-                          <p className="mt-1 text-xs text-gray-500">{getStatusDescription()}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
