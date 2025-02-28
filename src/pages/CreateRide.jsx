@@ -245,10 +245,10 @@ export default function CreateRide() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="card">
-          <div className="text-center mb-8">
+    <div className="min-h-screen bg-background py-4 md:py-8 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto -mt-4 md:mt-0">
+        <div className="card shadow-sm">
+          <div className="text-center mb-4 md:mb-6">
             <h2 className="text-3xl font-bold text-gray-900">Create a New Ride</h2>
             <p className="mt-2 text-gray-600">Share your journey with others</p>
           </div>
