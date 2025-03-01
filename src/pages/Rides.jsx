@@ -1027,7 +1027,7 @@ export default function Rides() {
                         <button
                           type="submit"
                           disabled={searchLoading}
-                          className="w-full sm:w-auto px-8 py-3 bg-indigo-600 text-white text-lg font-medium rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                          className="w-full sm:w-auto px-8 py-3 bg-indigo-300 text-white text-lg font-medium rounded-lg shadow-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                         >
                           {searchLoading ? (
                             <span className="inline-flex items-center justify-center">
@@ -1138,7 +1138,9 @@ export default function Rides() {
       
       {/* Available Rides heading */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Available Rides</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {(filters.pickupLat && filters.pickupLng && filters.dropoffLat && filters.dropoffLng) ? 'Best Rides' : 'Available Rides'}
+        </h2>
         
         <div className="text-sm text-gray-500">
           {!loading && !error && filteredRides.length > 0 && (
