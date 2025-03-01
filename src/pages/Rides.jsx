@@ -198,6 +198,27 @@ export default function Rides() {
   const handleSearch = async (e) => {
     e.preventDefault();
     
+    // Check if both pickup and dropoff locations are provided
+    if (!filters.pickupLat || !filters.pickupLng || !filters.dropoffLat || !filters.dropoffLng) {
+      // Show toast notification reminding user to enter both locations
+      toast.error('Please enter both pickup and destination locations');
+      
+      // Focus on the first empty location input
+      if (!filters.pickupLat || !filters.pickupLng) {
+        // Find the pickup location input and focus on it
+        const pickupInput = document.querySelector('input[placeholder="Search for pickup location"]') || 
+                           document.querySelector('input[placeholder="Enter pickup location"]');
+        if (pickupInput) pickupInput.focus();
+      } else {
+        // Find the dropoff location input and focus on it
+        const dropoffInput = document.querySelector('input[placeholder="Search for destination"]') || 
+                            document.querySelector('input[placeholder="Enter destination"]');
+        if (dropoffInput) dropoffInput.focus();
+      }
+      
+      return; // Stop execution of the function
+    }
+    
     // Check if location coordinates are provided for location-based search
     if (
       filters.pickupLat && 
@@ -580,7 +601,7 @@ export default function Rides() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
       {/* Header with "GoTogether" logo */}
       <div className="relative bg-indigo-700 rounded-xl p-0.5 mb-0 text-white shadow-lg">
         
@@ -590,337 +611,527 @@ export default function Rides() {
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
         {/* Search Form */}
         <form onSubmit={handleSearch} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Pickup Location */}
-            <div>
-              <div className="mb-2">
-                <h3 className="text-lg font-medium text-gray-900">Pickup Location</h3>
-                <p className="text-sm text-gray-500">Where would you like to be picked up?</p>
-              </div>
-              
-              {/* Google Maps location search */}
-              <div className="mb-4">
-                <LocationSearchBox 
-                  onPlaceSelect={handleLocationSelect}
-                  placeholder="Search for pickup location"
-                  type="pickup"
-                />
-              </div>
-              
-              {showPickupMap && (
-                <div className={`${isMobile ? 'absolute inset-0 z-50' : 'mb-4'}`}>
-                  <GoogleMapPicker
-                    initialPosition={
-                      filters.pickupLat && filters.pickupLng
-                        ? {
-                            lat: parseFloat(filters.pickupLat),
-                            lng: parseFloat(filters.pickupLng)
-                          }
-                        : null
-                    }
-                    onLocationSelect={handleLocationSelect}
-                    type="pickup"
-                    isMobile={isMobile}
-                    onClose={isMobile ? () => handleMapClose('pickup') : undefined}
-                  />
-                </div>
-              )}
-              
-              {filters.pickupAddress && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">Selected Address:</span> {filters.pickupAddress}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Coordinates: [{filters.pickupLng}, {filters.pickupLat}]
-                  </p>
-                </div>
-              )}
-              
-              {/* Show coordinates even if we don't have an address yet */}
-              {!filters.pickupAddress && filters.pickupLat && filters.pickupLng && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">Location selected on map</span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Coordinates: [{filters.pickupLng}, {filters.pickupLat}]
-                  </p>
-                </div>
-              )}
-              
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => getCurrentLocation('pickup')}
-                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
-                >
-                  <MapPinIcon className="h-4 w-4 mr-1" />
-                  Use Current Location
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openGoogleMaps('pickup')}
-                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
-                >
-                  {showPickupMap ? (
-                    <>
-                      Close Map
-                      <ArrowRightIcon className="h-3 w-3 ml-1 transform rotate-90" />
-                    </>
-                  ) : (
-                    <>
-                      Open Map
-                      <ArrowRightIcon className="h-3 w-3 ml-1" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-            
-            {/* Dropoff Location */}
-            <div>
-              <div className="mb-2">
-                <h3 className="text-lg font-medium text-gray-900">Dropoff Location</h3>
-                <p className="text-sm text-gray-500">Where would you like to go?</p>
-              </div>
-              
-              {/* Google Maps location search */}
-              <div className="mb-4">
-                <LocationSearchBox 
-                  onPlaceSelect={handleLocationSelect}
-                  placeholder="Search for dropoff location"
-                  type="dropoff"
-                />
-              </div>
-              
-              {showDropoffMap && (
-                <div className={`${isMobile ? 'absolute inset-0 z-50' : 'mb-4'}`}>
-                  <GoogleMapPicker
-                    initialPosition={
-                      filters.dropoffLat && filters.dropoffLng
-                        ? {
-                            lat: parseFloat(filters.dropoffLat),
-                            lng: parseFloat(filters.dropoffLng)
-                          }
-                        : null
-                    }
-                    onLocationSelect={handleLocationSelect}
-                    type="dropoff"
-                    isMobile={isMobile}
-                    onClose={isMobile ? () => handleMapClose('dropoff') : undefined}
-                  />
-                </div>
-              )}
-              
-              {filters.dropoffAddress && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">Selected Address:</span> {filters.dropoffAddress}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Coordinates: [{filters.dropoffLng}, {filters.dropoffLat}]
-                  </p>
-                </div>
-              )}
-              
-              {/* Show coordinates even if we don't have an address yet */}
-              {!filters.dropoffAddress && filters.dropoffLat && filters.dropoffLng && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">Location selected on map</span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Coordinates: [{filters.dropoffLng}, {filters.dropoffLat}]
-                  </p>
-                </div>
-              )}
-              
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => getCurrentLocation('dropoff')}
-                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
-                >
-                  <MapPinIcon className="h-4 w-4 mr-1" />
-                  Use Current Location
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openGoogleMaps('dropoff')}
-                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
-                >
-                  {showDropoffMap ? (
-                    <>
-                      Close Map
-                      <ArrowRightIcon className="h-3 w-3 ml-1 transform rotate-90" />
-                    </>
-                  ) : (
-                    <>
-                      Open Map
-                      <ArrowRightIcon className="h-3 w-3 ml-1" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Search button */}
-          <div className="mt-8 flex justify-center">
-            <button
-              type="submit"
-              disabled={searchLoading || !filters.pickupLat || !filters.pickupLng || !filters.dropoffLat || !filters.dropoffLng}
-              className="w-full sm:w-auto px-8 py-3 bg-indigo-700 text-white text-lg font-medium rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              {searchLoading ? (
-                <span className="inline-flex items-center">
-                  <span className="animate-spin h-4 w-4 mr-2 border-2 border-white border-r-transparent rounded-full"></span>
-                  Searching...
-                </span>
-              ) : (
-                <span className="inline-flex items-center">
-                  <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
-                  Find Rides
-                </span>
-              )}
-            </button>
-          </div>
-          
-          {/* Additional filters (hidden by default, can be toggled) */}
-          <div className="mt-4">
-            <details className="group">
-              <summary className="flex items-center text-sm font-medium text-indigo-700 cursor-pointer">
-                <span>Advanced Filters</span>
-                <span className="ml-1 transform group-open:rotate-180">▼</span>
-              </summary>
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-                {/* Min Seats */}
-                <div>
-                  <label htmlFor="seats" className="block text-sm font-medium text-gray-700">Min Seats</label>
-                  <select
-                    id="seats"
-                    name="seats"
-                    value={filters.seats}
-                    onChange={handleFilterChange}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-700 focus:border-indigo-700 sm:text-sm"
-                  >
-                    <option value="">Any</option>
-                    <option value="1">1+</option>
-                    <option value="2">2+</option>
-                    <option value="3">3+</option>
-                    <option value="4">4+</option>
-                  </select>
+          <div className="grid grid-cols-1 gap-8">
+            {/* Location Selection Container */}
+            <div className="relative">
+              {/* Mobile Design (current design) */}
+              <div className="md:hidden">
+                <div className="flex items-center justify-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800">Find Your Perfect Ride</h2>
                 </div>
                 
-                {/* Min Price */}
-                <div>
-                  <label htmlFor="priceMin" className="block text-sm font-medium text-gray-700">Min Price</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">$</span>
+                {/* Unified Location Selection Interface */}
+                <div className="max-w-4xl mx-auto">
+                  {/* Journey Card */}
+                  <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                    {/* Card Header */}
+                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-800">Route Details</h3>
+                      <p className="text-sm text-gray-500">Enter your pickup and destination locations</p>
                     </div>
-                    <input
-                      type="number"
-                      name="priceMin"
-                      id="priceMin"
-                      value={filters.priceMin}
-                      onChange={handleFilterChange}
-                      className="focus:ring-indigo-700 focus:border-indigo-700 block w-full pl-7 pr-3 sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Min"
-                    />
+                    
+                    {/* Card Body */}
+                    <div className="p-6">
+                      {/* Pickup & Dropoff Input Group */}
+                      <div className="relative">
+                        {/* Vertical Line Connector */}
+                        <div className="absolute left-4 top-12 bottom-12 w-0.5 bg-gray-200 z-0"></div>
+                        
+                        {/* Pickup Location Input */}
+                        <div className="relative flex items-start mb-8 z-10">
+                          <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center mr-4 flex-shrink-0">
+                            <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                          </div>
+                          <div className="flex-grow">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+                            <div className="relative">
+                              <LocationSearchBox 
+                                onPlaceSelect={handleLocationSelect}
+                                placeholder="Enter pickup location"
+                                type="pickup"
+                              />
+                            </div>
+                            
+                            {/* Selected Pickup Location */}
+                            {filters.pickupAddress && (
+                              <div className="mt-2 text-sm text-gray-700">
+                                <p className="font-medium">{filters.pickupAddress}</p>
+                              </div>
+                            )}
+                            
+                            {/* Pickup Actions */}
+                            <div className="mt-2 flex space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => getCurrentLocation('pickup')}
+                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 hover:text-gray-900"
+                              >
+                                <MapPinIcon className="h-3 w-3 mr-1 text-gray-500" />
+                                Use current location
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openGoogleMaps('pickup')}
+                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 hover:text-gray-900"
+                              >
+                                {showPickupMap ? 'Hide map' : 'Show map'}
+                                <ArrowRightIcon className={`h-3 w-3 ml-1 ${showPickupMap ? 'transform rotate-90' : ''}`} />
+                              </button>
+                            </div>
+                            
+                            {/* Map Container */}
+                            {showPickupMap && (
+                              <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                <GoogleMapPicker
+                                  initialPosition={
+                                    filters.pickupLat && filters.pickupLng
+                                      ? {
+                                          lat: parseFloat(filters.pickupLat),
+                                          lng: parseFloat(filters.pickupLng)
+                                        }
+                                      : null
+                                  }
+                                  onLocationSelect={handleLocationSelect}
+                                  type="pickup"
+                                  isMobile={isMobile}
+                                  onClose={isMobile ? () => handleMapClose('pickup') : undefined}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Dropoff Location Input */}
+                        <div className="relative flex items-start z-10">
+                          <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center mr-4 flex-shrink-0">
+                            <div className="w-3 h-3 rounded-full bg-gray-800"></div>
+                          </div>
+                          <div className="flex-grow">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                            <div className="relative">
+                              <LocationSearchBox 
+                                onPlaceSelect={handleLocationSelect}
+                                placeholder="Enter destination"
+                                type="dropoff"
+                              />
+                            </div>
+                            
+                            {/* Selected Dropoff Location */}
+                            {filters.dropoffAddress && (
+                              <div className="mt-2 text-sm text-gray-700">
+                                <p className="font-medium">{filters.dropoffAddress}</p>
+                              </div>
+                            )}
+                            
+                            {/* Dropoff Actions */}
+                            <div className="mt-2 flex space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => getCurrentLocation('dropoff')}
+                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 hover:text-gray-900"
+                              >
+                                <MapPinIcon className="h-3 w-3 mr-1 text-gray-500" />
+                                Use current location
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openGoogleMaps('dropoff')}
+                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 hover:text-gray-900"
+                              >
+                                {showDropoffMap ? 'Hide map' : 'Show map'}
+                                <ArrowRightIcon className={`h-3 w-3 ml-1 ${showDropoffMap ? 'transform rotate-90' : ''}`} />
+                              </button>
+                            </div>
+                            
+                            {/* Map Container */}
+                            {showDropoffMap && (
+                              <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                <GoogleMapPicker
+                                  initialPosition={
+                                    filters.dropoffLat && filters.dropoffLng
+                                      ? {
+                                          lat: parseFloat(filters.dropoffLat),
+                                          lng: parseFloat(filters.dropoffLng)
+                                        }
+                                      : null
+                                  }
+                                  onLocationSelect={handleLocationSelect}
+                                  type="dropoff"
+                                  isMobile={isMobile}
+                                  onClose={isMobile ? () => handleMapClose('dropoff') : undefined}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Location Details Summary */}
+                      {(filters.pickupLat && filters.pickupLng && filters.dropoffLat && filters.dropoffLng) && (
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-500">
+                              <span className="font-medium">Route details</span>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {/* Could add distance calculation here if available */}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Search Button */}
+                      <div className="mt-6">
+                        <button
+                          type="submit"
+                          disabled={searchLoading}
+                          className="w-full px-6 py-3 bg-indigo-300 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        >
+                          {searchLoading ? (
+                            <span className="inline-flex items-center justify-center">
+                              <span className="animate-spin h-5 w-5 mr-3 border-2 border-white border-r-transparent rounded-full"></span>
+                              Searching...
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center">
+                              <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+                              Search
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </div>
+              
+              {/* Desktop Design (simpler layout) */}
+              <div className="hidden md:block">
+                {/* <div className="flex items-center justify-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800">Find Your Perfect Ride</h2>
+                </div> */}
                 
-                {/* Max Price */}
-                <div>
-                  <label htmlFor="priceMax" className="block text-sm font-medium text-gray-700">Max Price</label>
-                  <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">$</span>
+                <div className="max-w-7xl mx-auto">
+                  <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+                    {/* Search Form */}
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Pickup Location */}
+                        <div>
+                          <div className="mb-2">
+                            <h3 className="text-lg font-medium text-gray-900">Pickup Location</h3>
+                            <p className="text-sm text-gray-500">Where would you like to be picked up?</p>
+                          </div>
+                          
+                          {/* Google Maps location search */}
+                          <div className="mb-4">
+                            <LocationSearchBox 
+                              onPlaceSelect={handleLocationSelect}
+                              placeholder="Search for pickup location"
+                              type="pickup"
+                            />
+                          </div>
+                          
+                          {showPickupMap && (
+                            <div className="mb-4 h-64 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                              <GoogleMapPicker
+                                initialPosition={
+                                  filters.pickupLat && filters.pickupLng
+                                    ? {
+                                        lat: parseFloat(filters.pickupLat),
+                                        lng: parseFloat(filters.pickupLng)
+                                      }
+                                    : null
+                                }
+                                onLocationSelect={handleLocationSelect}
+                                type="pickup"
+                                isMobile={false}
+                              />
+                            </div>
+                          )}
+                          
+                          {filters.pickupAddress && (
+                            <div className="mb-4 p-3 bg-red-50 rounded-md border border-red-100">
+                              <p className="text-sm text-gray-700">
+                                <span className="font-medium">Selected Address:</span> {filters.pickupAddress}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Coordinates: {parseFloat(filters.pickupLat).toFixed(6)}, {parseFloat(filters.pickupLng).toFixed(6)}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Show coordinates even if we don't have an address yet */}
+                          {!filters.pickupAddress && filters.pickupLat && filters.pickupLng && (
+                            <div className="mb-4 p-3 bg-green-50 rounded-md border border-green-100">
+                              <p className="text-sm text-gray-700">
+                                <span className="font-medium">Location selected on map</span>
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Coordinates: {parseFloat(filters.pickupLat).toFixed(6)}, {parseFloat(filters.pickupLng).toFixed(6)}
+                              </p>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => getCurrentLocation('pickup')}
+                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                            >
+                              <MapPinIcon className="h-4 w-4 mr-2 text-indigo-600" />
+                              Use Current Location
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openGoogleMaps('pickup')}
+                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                            >
+                              {showPickupMap ? (
+                                <>
+                                  Hide Map
+                                  <ArrowRightIcon className="h-4 w-4 ml-2 transform rotate-90" />
+                                </>
+                              ) : (
+                                <>
+                                  Show Map
+                                  <ArrowRightIcon className="h-4 w-4 ml-2" />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Dropoff Location */}
+                        <div>
+                          <div className="mb-2">
+                            <h3 className="text-lg font-medium text-gray-900">Destination</h3>
+                            <p className="text-sm text-gray-500">Where would you like to go?</p>
+                          </div>
+                          
+                          {/* Google Maps location search */}
+                          <div className="mb-4">
+                            <LocationSearchBox 
+                              onPlaceSelect={handleLocationSelect}
+                              placeholder="Search for destination"
+                              type="dropoff"
+                            />
+                          </div>
+                          
+                          {showDropoffMap && (
+                            <div className="mb-4 h-64 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                              <GoogleMapPicker
+                                initialPosition={
+                                  filters.dropoffLat && filters.dropoffLng
+                                    ? {
+                                        lat: parseFloat(filters.dropoffLat),
+                                        lng: parseFloat(filters.dropoffLng)
+                                      }
+                                    : null
+                                }
+                                onLocationSelect={handleLocationSelect}
+                                type="dropoff"
+                                isMobile={false}
+                              />
+                            </div>
+                          )}
+                          
+                          {filters.dropoffAddress && (
+                            <div className="mb-4 p-3 bg-red-50 rounded-md border border-red-100">
+                              <p className="text-sm text-gray-700">
+                                <span className="font-medium">Selected Address:</span> {filters.dropoffAddress}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Coordinates: {parseFloat(filters.dropoffLat).toFixed(6)}, {parseFloat(filters.dropoffLng).toFixed(6)}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Show coordinates even if we don't have an address yet */}
+                          {!filters.dropoffAddress && filters.dropoffLat && filters.dropoffLng && (
+                            <div className="mb-4 p-3 bg-red-50 rounded-md border border-red-100">
+                              <p className="text-sm text-gray-700">
+                                <span className="font-medium">Location selected on map</span>
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Coordinates: {parseFloat(filters.dropoffLat).toFixed(6)}, {parseFloat(filters.dropoffLng).toFixed(6)}
+                              </p>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => getCurrentLocation('dropoff')}
+                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                            >
+                              <MapPinIcon className="h-4 w-4 mr-2 text-indigo-600" />
+                              Use Current Location
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openGoogleMaps('dropoff')}
+                              className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                            >
+                              {showDropoffMap ? (
+                                <>
+                                  Hide Map
+                                  <ArrowRightIcon className="h-4 w-4 ml-2 transform rotate-90" />
+                                </>
+                              ) : (
+                                <>
+                                  Show Map
+                                  <ArrowRightIcon className="h-4 w-4 ml-2" />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Route visualization (only shown when both locations are selected) */}
+                      {(filters.pickupLat && filters.pickupLng && filters.dropoffLat && filters.dropoffLng) && (
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="text-sm font-medium text-gray-700">
+                              <span>Route details</span>
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center">
+                            <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                              </svg>
+                            </div>
+                            <div className="flex-grow">
+                              <div className="flex items-center">
+                                <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                                <p className="text-sm font-medium text-gray-700 truncate">{filters.pickupAddress}</p>
+                              </div>
+                              <div className="my-1 ml-1.5 border-l-2 border-dashed border-gray-300 h-4"></div>
+                              <div className="flex items-center">
+                                <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                                <p className="text-sm font-medium text-gray-700 truncate">{filters.dropoffAddress}</p>
+                              </div>
+                            </div>
+                            <div className="flex-shrink-0 text-right">
+                              <p className="text-xs text-gray-500">Max distance from route:</p>
+                              <p className="text-sm font-medium text-indigo-700">{parseInt(filters.maxDistance)/1000} km</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Search Button for Desktop */}
+                      <div className="mt-8 flex justify-center">
+                        <button
+                          type="submit"
+                          disabled={searchLoading}
+                          className="w-full sm:w-auto px-8 py-3 bg-indigo-600 text-white text-lg font-medium rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        >
+                          {searchLoading ? (
+                            <span className="inline-flex items-center justify-center">
+                              <span className="animate-spin h-5 w-5 mr-3 border-2 border-white border-r-transparent rounded-full"></span>
+                              Searching for rides...
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center">
+                              <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+                              Find Rides
+                            </span>
+                          )}
+                        </button>
+                      </div>
                     </div>
-                    <input
-                      type="number"
-                      name="priceMax"
-                      id="priceMax"
-                      value={filters.priceMax}
-                      onChange={handleFilterChange}
-                      className="focus:ring-indigo-700 focus:border-indigo-700 block w-full pl-7 pr-3 sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Max"
-                    />
                   </div>
-                </div>
-                
-                {/* Max Distance */}
-                <div>
-                  <label htmlFor="maxDistance" className="block text-sm font-medium text-gray-700">
-                    Max Distance: {parseInt(filters.maxDistance)/1000} km
-                  </label>
-                  <input
-                    type="range"
-                    id="maxDistance"
-                    name="maxDistance"
-                    min="1000"
-                    max="20000"
-                    step="1000"
-                    value={filters.maxDistance}
-                    onChange={handleFilterChange}
-                    className="mt-1 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
                 </div>
               </div>
               
-              {/* Sort controls */}
-              <div className="mt-4 flex flex-wrap gap-4 items-end border-t border-gray-200 pt-4">
-                <div>
-                  <label htmlFor="sortBy" className="block text-sm font-medium text-gray-700">Sort By</label>
-                  <select
-                    id="sortBy"
-                    name="sortBy"
-                    value={filters.sortBy}
-                    onChange={handleFilterChange}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-700 focus:border-indigo-700 sm:text-sm"
-                  >
-                    <option value="departureTime">Departure Time</option>
-                    <option value="price">Price</option>
-                    <option value="seats">Available Seats</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="sortDirection" className="block text-sm font-medium text-gray-700">Order</label>
-                  <select
-                    id="sortDirection"
-                    name="sortDirection"
-                    value={filters.sortDirection}
-                    onChange={handleFilterChange}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-700 focus:border-indigo-700 sm:text-sm"
-                  >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                  </select>
-                </div>
-                <div className="flex-grow"></div>
-                <button
-                  type="button"
-                  onClick={() => setFilters({
-                    seats: '',
-                    priceMin: '',
-                    priceMax: '',
-                    searchQuery: '',
-                    sortBy: 'departureTime',
-                    sortDirection: 'asc',
-                    pickupLat: '',
-                    pickupLng: '',
-                    dropoffLat: '',
-                    dropoffLng: '',
-                    maxDistance: '5000'
-                  })}
-                  className="py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 transition-colors duration-200"
-                >
-                  Reset All Filters
-                </button>
+              {/* Advanced Filters Panel */}
+              <div className="mt-4">
+                <details className="group">
+                  <summary className="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                    <span>Advanced Filters</span>
+                    <span className="ml-1 transform group-open:rotate-180">▼</span>
+                  </summary>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+                    {/* Min Seats */}
+                    <div>
+                      <label htmlFor="seats" className="block text-sm font-medium text-gray-700">Min Seats</label>
+                      <select
+                        id="seats"
+                        name="seats"
+                        value={filters.seats}
+                        onChange={handleFilterChange}
+                        className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      >
+                        <option value="">Any</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                      </select>
+                    </div>
+                    
+                    {/* Min Price */}
+                    <div>
+                      <label htmlFor="priceMin" className="block text-sm font-medium text-gray-700">Min Price</label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          name="priceMin"
+                          id="priceMin"
+                          value={filters.priceMin}
+                          onChange={handleFilterChange}
+                          className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-7 pr-3 sm:text-sm border-gray-300 rounded-md"
+                          placeholder="Min"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Max Price */}
+                    <div>
+                      <label htmlFor="priceMax" className="block text-sm font-medium text-gray-700">Max Price</label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          name="priceMax"
+                          id="priceMax"
+                          value={filters.priceMax}
+                          onChange={handleFilterChange}
+                          className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-7 pr-3 sm:text-sm border-gray-300 rounded-md"
+                          placeholder="Max"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Max Distance */}
+                    <div>
+                      <label htmlFor="maxDistance" className="block text-sm font-medium text-gray-700">
+                        Max Distance: {parseInt(filters.maxDistance)/1000} km
+                      </label>
+                      <input
+                        type="range"
+                        id="maxDistance"
+                        name="maxDistance"
+                        min="1000"
+                        max="20000"
+                        step="1000"
+                        value={filters.maxDistance}
+                        onChange={handleFilterChange}
+                        className="mt-1 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </details>
               </div>
-            </details>
+            </div>
           </div>
         </form>
       </div>
@@ -1001,69 +1212,77 @@ export default function Rides() {
                   onClick={() => handleRideClick(rideId)}
                   className="bg-white rounded-lg shadow-md hover:shadow-xl hover:translate-y-[-2px] transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100"
                 >
-                  <div className="flex items-start p-6">
-                    {/* Driver profile */}
-                    <div className="flex flex-col items-center mr-6">
-                      <div className="h-14 w-14 rounded-full bg-indigo-700 text-white flex items-center justify-center text-lg font-semibold">
+                  {/* Unified responsive card design */}
+                  {/* Header with price and driver info */}
+                  <div className="flex items-center justify-between bg-gray-50 p-3 md:p-4 border-b border-gray-100">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-indigo-700 text-white flex items-center justify-center text-sm md:text-base font-semibold mr-2 md:mr-3">
                         {driverFirstName.charAt(0)}{driverLastName.charAt(0)}
                       </div>
-                      <p className="mt-2 text-sm font-medium">{driverName}</p>
-                      <p className="text-xs text-gray-500">New Driver</p>
-                    </div>
-
-                    {/* Ride details */}
-                    <div className="flex-grow">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="flex flex-col items-start">
-                          {/* Pickup */}
-                          <div className="flex items-start mb-2">
-                            <div className="w-4 h-4 rounded-full bg-green-500 mt-1 flex-shrink-0 mr-3"></div>
-                            <div>
-                              <p className="text-sm text-gray-500">Pickup</p>
-                              <p className="font-medium">{pickup}</p>
-                            </div>
-                          </div>
-                          
-                          {/* Dropoff */}
-                          <div className="flex items-start">
-                            <div className="w-4 h-4 rounded-full bg-red-500 mt-1 flex-shrink-0 mr-3"></div>
-                            <div>
-                              <p className="text-sm text-gray-500">Dropoff</p>
-                              <p className="font-medium">{dropoff}</p>
-                            </div>
-                          </div>
+                      <div>
+                        <p className="text-sm md:text-base font-medium leading-tight">{driverName}</p>
+                        <div className="flex items-center">
+                          <UsersIcon className="h-3 w-3 md:h-4 md:w-4 text-gray-500 mr-1" />
+                          <p className="text-xs md:text-sm text-gray-500">{seats} seat{seats !== 1 ? 's' : ''} available</p>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center text-sm text-gray-500">
-                          <CalendarIcon className="h-4 w-4 mr-1.5" />
-                          {departureTime}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg md:text-2xl font-bold text-indigo-700">${price}</div>
+                      <p className="text-xs text-gray-500">per seat</p>
+                    </div>
+                  </div>
+                  
+                  {/* Route information */}
+                  <div className="p-3 md:p-4">
+                    <div className="flex mb-3">
+                      <div className="mr-3 md:mr-4 relative" style={{ width: '10px', minHeight: '80px' }}>
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500 z-10"></div>
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-2.5 w-0.5 h-full bg-gray-300"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 z-10"></div>
+                      </div>
+                      <div className="flex-1 flex flex-col justify-between min-h-[80px]">
+                        <div className="bg-gray-50 rounded-md p-2 md:p-3 mb-3">
+                          <p className="text-xs md:text-sm text-gray-500 mb-0.5">From</p>
+                          <p className="text-sm md:text-base font-medium md:hidden truncate">{pickup.split(',')[0]}</p>
+                          <p className="hidden md:block text-base font-medium">{pickup}</p>
                         </div>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <UsersIcon className="h-4 w-4 mr-1.5" />
-                          {seats} seat{seats !== 1 ? 's' : ''} available
+                        <div className="bg-gray-50 rounded-md p-2 md:p-3">
+                          <p className="text-xs md:text-sm text-gray-500 mb-0.5">To</p>
+                          <p className="text-sm md:text-base font-medium md:hidden truncate">{dropoff.split(',')[0]}</p>
+                          <p className="hidden md:block text-base font-medium">{dropoff}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Time information */}
+                    <div className="flex flex-wrap md:flex-nowrap items-center justify-between bg-gray-50 rounded-md p-2 md:p-3 mt-3">
+                      <div className="flex items-center">
+                        <div className="bg-indigo-100 rounded-full p-1 md:p-1.5 mr-2 md:mr-3">
+                          <CalendarIcon className="h-3 w-3 md:h-4 md:w-4 text-indigo-700" />
+                        </div>
+                        <div>
+                          <p className="text-xs md:text-sm text-gray-500">Departure</p>
+                          <p className="text-sm md:text-base font-medium">
+                            {new Date(ride.departureTime || ride.time).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})} • {new Date(ride.departureTime || ride.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </p>
                         </div>
                       </div>
                       
-                      {/* Show distance if available from bestMatches API */}
+                      {/* Show distance if available from bestMatches API - Desktop only */}
                       {ride.pickupDistance && (
-                        <div className="flex justify-end mt-3 text-xs text-gray-500">
-                          Pickup: {(ride.pickupDistance/1000).toFixed(1)}km • Dropoff: {(ride.dropoffDistance/1000).toFixed(1)}km
+                        <div className="hidden md:block text-xs text-gray-500 mx-4">
+                          <span className="font-medium">Distance:</span> Pickup {(ride.pickupDistance/1000).toFixed(1)}km • Dropoff {(ride.dropoffDistance/1000).toFixed(1)}km
                         </div>
                       )}
-                    </div>
-
-                    {/* Price */}
-                    <div className="ml-6 text-right flex-shrink-0">
-                      <div className="text-2xl font-bold text-indigo-700">${price}</div>
-                      <p className="text-xs text-gray-500">per seat</p>
+                      
                       <Link 
                         to={`/rides/${rideId}`}
-                        className="mt-3 inline-block text-sm font-medium text-indigo-700 hover:text-indigo-900 transition-colors duration-200"
+                        className="flex items-center text-xs md:text-sm font-medium text-indigo-700 bg-white rounded-full py-1 px-2 md:py-1.5 md:px-3 shadow-sm mt-2 md:mt-0"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        View Details
+                        Details
+                        <ArrowRightIcon className="h-3 w-3 md:h-4 md:w-4 ml-1" />
                       </Link>
                     </div>
                   </div>
