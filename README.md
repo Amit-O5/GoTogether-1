@@ -7,28 +7,28 @@
 
 ## 🌟 Overview
 
-GoTogether is a modern web application designed to streamline group travel planning and coordination. Built with React 18 and Vite, this platform offers an intuitive interface for creating shared itineraries, managing travel logistics, and collaborating with fellow travelers in real-time.
+GoTogether is a modern ride-sharing web application designed to connect travelers going in the same direction. Built with React 18 and Vite, this platform offers an intuitive interface for offering and finding rides, managing bookings, and coordinating travel plans with fellow users in real-time.
 
 > **⚠️ IMPORTANT NOTE:** The backend server for this project is not publicly available. This repository contains only the client-side code and is intended for demonstration purposes or for use with your own compatible backend implementation.
 
 ## ✨ Key Features
 
-### 🚗 Ride Sharing
-- **Offer Rides**: Drivers can create and offer rides with detailed information
-- **Find Rides**: Riders can search and filter available rides based on location, time, and preferences
+### 🚗 Unified Ride Sharing Experience
+- **Offer Rides**: Any user can create and offer rides with detailed information about their journey
+- **Find Rides**: Users can search and filter available rides based on location, time, and preferences
 - **Booking Management**: Track the status of ride requests and bookings in a dedicated dashboard
-- **Request System**: Seamless ride request and approval workflow for both drivers and riders
+- **Request System**: Seamless ride request and approval workflow between ride offerers and requesters
 
 ### 📍 Location & Mapping
 - **Map Integration**: Visualize pickup and dropoff points with interactive maps powered by React Leaflet
 - **Route Optimization**: Find the most efficient routes between locations
-- **Location-Based Matching**: Connect riders with nearby drivers for optimal convenience
+- **Location-Based Matching**: Connect users with nearby rides for optimal convenience
 
 ### 👥 User Profiles & Management
-- **Role-Based Access**: Separate interfaces and capabilities for riders and drivers
+- **Unified User Experience**: All users can both offer and request rides with the same account
 - **Profile Management**: Update personal information, preferences, and vehicle details
 - **Booking History**: View past, current, and upcoming rides in one place
-- **Reviews & Ratings**: Build trust with driver and rider ratings
+- **Reviews & Ratings**: Build trust with user ratings and reviews
 
 ### 🔔 Notifications & Communication
 - **Status Updates**: Real-time notifications for ride request approvals, rejections, and changes
@@ -50,7 +50,7 @@ GoTogether is a modern web application designed to streamline group travel plann
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/gotogether-client.git
+git clone https://github.com/vipulbeniwal01/gotogether-client.git
 cd gotogether-client
 
 # Install dependencies
@@ -97,29 +97,29 @@ vercel
 
 ## 📲 Feature Highlights
 
-### My Bookings
-The My Bookings page provides a comprehensive overview of all ride requests and their current status:
+### My Rides
+The My Rides page provides a comprehensive overview of all your ride activities:
 
-- **For Riders**: View all requested rides with status indicators (pending, confirmed, rejected)
-- **For Drivers**: Manage passenger requests with options to accept or reject
-- **Rich Information**: See pickup/dropoff locations, departure times, and passenger/driver details
+- **Offered Rides**: Manage rides you've created, including passenger requests and ride details
+- **Requested Rides**: View all rides you've requested with status indicators (pending, confirmed, rejected)
+- **Rich Information**: See pickup/dropoff locations, departure times, and user details
 - **Status Tracking**: Visual indicators show the current status of each booking
 
-### Driver Dashboard
-A dedicated dashboard for drivers to manage their offered rides:
+### Create & Manage Rides
+Easily create and manage ride offerings:
 
-- **Ride Management**: Create, edit, and cancel offered rides
-- **Passenger Requests**: Review and respond to ride requests
+- **Ride Creation**: Set up new rides with pickup/dropoff locations, time, available seats, and price
+- **Preferences Setting**: Specify preferences like smoking, pets, alcohol policies, and gender preferences
+- **Request Management**: Review and respond to ride requests from other users
 - **Capacity Tracking**: Monitor available seats and bookings
-- **Schedule Overview**: Calendar view of upcoming and past rides
 
-### Rider Experience
-Tailored features for ride seekers:
+### Find Rides
+Powerful search capabilities for finding the perfect ride:
 
 - **Ride Search**: Find available rides based on location, date, and preferences
-- **Booking Workflow**: Simple request process with clear status updates
-- **Driver Information**: View driver profiles, ratings, and vehicle information
-- **Route Visualization**: Map view of pickup and dropoff locations
+- **Map Visualization**: See pickup and dropoff locations on interactive maps
+- **Filtering Options**: Filter rides by price, available seats, and user preferences
+- **User Information**: View profiles, ratings, and vehicle information of ride offerers
 
 ## 🧰 Technology Stack
 
@@ -127,7 +127,7 @@ Tailored features for ride seekers:
 - **Build Tool**: Vite for fast development and optimized production builds
 - **Styling**: TailwindCSS for responsive design
 - **State Management**: React Context API and SWR for data fetching
-- **Routing**: React Router v7
+- **Routing**: React Router v6
 - **UI Components**: HeadlessUI and HeroIcons
 - **Maps**: React Leaflet for interactive mapping
 - **Notifications**: React Hot Toast
@@ -139,12 +139,9 @@ src/
 ├── assets/        # Static assets and images
 ├── components/    # Reusable React components
 ├── contexts/      # React context providers
-├── hooks/         # Custom React hooks
-├── layouts/       # Page layout components
 ├── pages/         # Main application pages
 ├── services/      # API service integrations
-├── styles/        # Global styles and Tailwind utilities
-└── utils/         # Helper functions and utilities
+└── styles/        # Global styles and Tailwind utilities
 ```
 
 ## 📝 License
@@ -153,4 +150,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to fork this repository and submit a Pull Request for further enhancements. Some areas for potential improvement include:
+
+- Adding real-time chat functionality between users
+- Implementing a payment gateway for in-app payments
+- Enhancing the map functionality with more detailed route information
+- Adding support for recurring rides
+- Implementing a mobile app version using React Native
+
+If you have any questions or suggestions, please open an issue or reach out to the project maintainers.
