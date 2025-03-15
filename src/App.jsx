@@ -15,6 +15,11 @@ import RideRequests from './pages/RideRequests';
 import Notifications from './pages/Notifications';
 import MyReports from './pages/MyReports';
 import PrivateRoute from './components/PrivateRoute';
+import ReactGA from "react-ga4";
+
+ReactGA.initialize("G-KHYDD62GDD");
+
+ReactGA.send("pageview");
 
 function App() {
   return (
