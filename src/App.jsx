@@ -18,7 +18,6 @@ import PrivateRoute from './components/PrivateRoute';
 import ReactGA from "react-ga4";
 
 ReactGA.initialize("G-5LY55RM5TD");
-
 ReactGA.send("pageview");
 
 function App() {
