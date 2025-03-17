@@ -17,7 +17,7 @@ import MyReports from './pages/MyReports';
 import PrivateRoute from './components/PrivateRoute';
 import ReactGA from "react-ga4";
 
-ReactGA.initialize("G-KHYDD62GDD");
+ReactGA.initialize("G-5LY55RM5TD");
 
 ReactGA.send("pageview");
 
