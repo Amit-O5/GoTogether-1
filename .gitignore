@@ -12,6 +12,7 @@ node_modules
 /.pnp
 .pnp.js
 .env.local
+.env
 
 # Build outputs
 dist
