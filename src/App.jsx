@@ -16,6 +16,7 @@ import Notifications from './pages/Notifications';
 import MyReports from './pages/MyReports';
 import PrivateRoute from './components/PrivateRoute';
 import ReactGA from "react-ga4";
+import Landing from './pages/Landing';
 
 ReactGA.initialize("G-5LY55RM5TD");
 ReactGA.send("pageview");
@@ -31,11 +32,12 @@ function App() {
             <main className="container mx-auto px-4 py-8">
               <Routes>
                 {/* Public Routes */}
+                <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
                 {/* Redirect root to /rides */}
-                <Route path="/" element={<Navigate to="/rides" replace />} />
+                {/* <Route path="/" element={<Navigate to="/rides" replace />} /> */}
 
                 {/* Protected Routes */}
                 <Route
