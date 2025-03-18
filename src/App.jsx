@@ -36,9 +36,6 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* Redirect root to /rides */}
-                {/* <Route path="/" element={<Navigate to="/rides" replace />} /> */}
-
                 {/* Protected Routes */}
                 <Route
                   path="/rides"
