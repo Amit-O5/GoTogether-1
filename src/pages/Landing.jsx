@@ -1,9 +1,11 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import arrowRight from '../assets/arrow-right.svg'; 
 import carImage from '../assets/car.svg';
 import { FaCar, FaShieldAlt, FaUserFriends, FaMoneyBillWave, FaLeaf, FaHandshake } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { FaMapMarkedAlt, FaCarSide, FaStar, FaArrowRight } from 'react-icons/fa';
+import { TiChevronLeftOutline, TiChevronRightOutline } from 'react-icons/ti';
 
 export const Landing = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -50,7 +52,7 @@ export const Landing = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % features.length);
-    }, 3000);
+    }, 2000000);
     return () => clearInterval(interval);
   }, []);
 
@@ -77,12 +79,88 @@ export const Landing = () => {
     }
   ];
 
+  const Card = ({ feature }) => (
+    <div className="w-[23rem] h-[20rem] p-8 rounded-xl bg-[#4c48ec] backdrop-blur-sm shadow-lg transform transition-all duration-300">
+      <div className="flex flex-col items-center text-center h-full">
+        <div className="bg-white/90 p-4 rounded-full mb-4">
+          {feature.icon}
+        </div>
+        <h3 className="text-xl font-semibold mb-3 text-white">{feature.title}</h3>
+        <p className="text-white/80">{feature.description}</p>
+      </div>
+    </div>
+  );
+
+  const Carousel = ({ children }) => {
+    const [active, setActive] = useState(2);
+    const count = React.Children.count(children);
+    const wrappedChildren = [...children, ...children, ...children];
+    
+    const handlePrevious = () => {
+      setActive(current => {
+        const nextIndex = current - 1;
+        if (nextIndex < 0) {
+          return count - 1;
+        }
+        return nextIndex;
+      });
+    };
+
+    const handleNext = () => {
+      setActive(current => {
+        const nextIndex = current + 1;
+        if (nextIndex >= count) {
+          return 0;
+        }
+        return nextIndex;
+      });
+    };
+
+    return (
+      <div className="relative w-[23rem] h-[20rem] perspective-500 preserve-3d">
+        <button 
+          className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 text-3xl text-[#ffffff] z-10 cursor-pointer"
+          onClick={handlePrevious}
+        >
+          <TiChevronLeftOutline/>
+        </button>
+        
+        {React.Children.map(wrappedChildren, (child, i) => (
+          <div
+            className="absolute w-full h-full transition-all duration-300 ease-out"
+            style={{
+              transform: `
+                rotateY(calc(${(active - i) * 50}deg))
+                scaleY(calc(1 + ${Math.abs(active - i)} * -0.4))
+                translateZ(calc(${Math.abs(active - i)} * -30rem))
+                translateX(calc(${Math.sign(active - i)} * -5rem))
+              `,
+              filter: `blur(${Math.abs(active - i) * 0.8}rem)`,
+              opacity: Math.abs(active - i) >= 3 ? 0 : 1,
+              display: Math.abs(active - i) > 3 ? 'none' : 'block',
+              pointerEvents: active === i ? 'auto' : 'none',
+            }}
+          >
+            {child}
+          </div>
+        ))}
+        
+        <button 
+          className="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 text-3xl text-[#ffffff] z-10 cursor-pointer"
+          onClick={handleNext}
+        >
+          <TiChevronRightOutline/>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <section className="min-h-screen pt-4 sm:pt-6 md:pt-8 pb-12 sm:pb-16 md:pb-20 bg-[radial-gradient(ellipse_200%_100%_at_bottom_center,#4c48ec,#FFFFFF_30%)] relative overflow-hidden">
       <div className="container px-4 sm:px-6 lg:px-20 max-w-10xl justify-center">
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 relative">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 relative lg:py:20">
           <div className='w-full lg:w-[500px] z-10 relative text-center lg:text-left'>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-b from-black to-[#4c48ec] text-transparent bg-clip-text mt-4 sm:mt-6">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-b from-black to-[#4c48ec] text-transparent bg-clip-text mt-4 sm:mt-6 py-4">
               Welcome to GoTogether
             </h1>
             <p className="text-lg sm:text-xl text-[#010D3E] tracking-tight mt-4 sm:mt-6 max-w-xl mx-auto lg:mx-0">
@@ -117,40 +195,24 @@ export const Landing = () => {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-black">
           Why Choose GoTogether?
         </h2>
-        <div className="max-w-7xl mx-auto overflow-hidden">
-          <div 
-            className="flex transition-transform duration-1000 ease-in-out"
-            style={{ transform: `translateX(-${currentIndex * (100 / features.length)}%)` }}
-          >
-            {features.concat(features).map((feature, index) => (
-              <div 
-                key={index} 
-                className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-4"
-              >
-                <div className="p-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-[#4c48ec]/10 p-4 rounded-full mb-4">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                    <p className="text-[#010D3E]">{feature.description}</p>
-                  </div>
-                </div>
-              </div>
+        <div className="flex justify-center items-center">
+          <Carousel>
+            {features.map((feature, index) => (
+              <Card key={index} feature={feature} />
             ))}
-          </div>
+          </Carousel>
         </div>
       </div>
+
       {/* How It Works Section */}
       <div className="mt-24 lg:mt-32 px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black ">
           How GoTogether Works
         </h2>
         <p className="text-center text-lg text-[#010D3E] mb-12 max-w-2xl mx-auto">
           Get started with GoTogether in four simple steps
         </p>
         <div className="max-w-7xl mx-auto relative">
-          <div className="sm:hidden absolute left-1/2 top-0 bottom-0 w-0.5 bg-[#4c48ec]/20 transform -translate-x-1/2" />
           
           {howItWorks.map((step, index) => (
             <div key={index} 
@@ -179,8 +241,6 @@ export const Landing = () => {
           ))}
         </div>
       </div>
-
-      
     </section>
   );
 }
