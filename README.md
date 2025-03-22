@@ -50,8 +50,9 @@ GoTogether is a modern ride-sharing web application designed to connect traveler
 
 ```bash
 # Clone the repository
-git clone https://github.com/vipulbeniwal01/gotogether-client.git
-cd gotogether-client
+git clone https://github.com/vipulbeniwal01/GoTogether.git
+cd GoTogether
+
 
 # Install dependencies
 npm install
