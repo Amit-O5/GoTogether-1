@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 
-// Reusable component for feature cards
+
 const FeatureCard = ({ icon, title, description }) => (
   <div className="p-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transform transition-transform duration-300 hover:scale-105">
     <div className="flex flex-col items-center text-center">
@@ -19,7 +19,7 @@ const FeatureCard = ({ icon, title, description }) => (
   </div>
 );
 
-// Reusable component for "How It Works" steps
+
 const HowItWorksStep = ({ icon, title, description, stepNumber, reverse }) => (
   <div className={`flex flex-col md:flex-row gap-8 items-center mb-24 relative ${reverse ? 'md:flex-row-reverse' : ''}`}>
     <div className={`w-full md:w-1/2 ${reverse ? 'md:pl-12' : 'md:pr-12'} relative z-10`}>
@@ -76,6 +76,14 @@ export const Landing = () => {
     }
   ];
 
+ 
+  const slidesPerPage = 3;
+  const groups = [];
+  for (let i = 0; i < features.length; i += slidesPerPage) {
+    groups.push(features.slice(i, i + slidesPerPage));
+  }
+  const totalPages = groups.length;
+
   // Steps for "How It Works"
   const howItWorks = [
     {
@@ -102,21 +110,21 @@ export const Landing = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Auto-scroll carousel every 3 seconds
+  
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % features.length);
+      setCurrentIndex(prevIndex => (prevIndex + 1) % totalPages);
     }, 3000);
     return () => clearInterval(interval);
-  }, [features.length]);
+  }, [totalPages]);
 
   // Manual control handlers
   const handlePrev = () => {
-    setCurrentIndex(prevIndex => (prevIndex - 1 + features.length) % features.length);
+    setCurrentIndex(prevIndex => (prevIndex - 1 + totalPages) % totalPages);
   };
 
   const handleNext = () => {
-    setCurrentIndex(prevIndex => (prevIndex + 1) % features.length);
+    setCurrentIndex(prevIndex => (prevIndex + 1) % totalPages);
   };
 
   return (
@@ -133,7 +141,7 @@ export const Landing = () => {
             <div className="flex sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start items-center mt-6 sm:mt-8">
               <Link
                 to="/register"
-                className="w-full sm:w-auto bg-black text-white px-6 py-3 rounded-lg font-medium inline-flex items-center justify-center tracking-tight hover:bg-opacity-90 transition-all"
+                className="w-full sm:w-auto bg-black text-white px-6 py-3 rounded-lg font-medium inline-flex items-center justify-center tracking-tight hover:bg-opacity-90 transition-all transform hover:scale-105"
                 aria-label="Get Started with GoTogether"
               >
                 Get Started
@@ -163,47 +171,49 @@ export const Landing = () => {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-black">
           Why Choose GoTogether?
         </h2>
-        <div className="max-w-7xl mx-auto relative">
-          <div className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-1000 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * (100 / features.length)}%)` }}
-            >
-              {features.map((feature, index) => (
-                <div key={index} className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-4">
-                  <FeatureCard 
-                    icon={feature.icon} 
-                    title={feature.title} 
-                    description={feature.description} 
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="max-w-7xl mx-auto relative overflow-hidden">
+          <div
+            className="flex transition-transform duration-1000 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          >
+            {groups.map((group, groupIndex) => (
+              <div key={groupIndex} className="w-full flex-shrink-0 flex gap-4 px-4">
+                {group.map((feature, index) => (
+                  <div key={index} className="w-1/3">
+                    <FeatureCard 
+                      icon={feature.icon} 
+                      title={feature.title} 
+                      description={feature.description} 
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
           {/* Manual Controls */}
           <div className="flex justify-center mt-6 gap-4">
             <button
               onClick={handlePrev}
               aria-label="Previous Feature"
-              className="p-2 bg-[#4c48ec] text-white rounded-full hover:bg-[#3b39d1] transition-colors"
+              className="p-2 bg-[#4c48ec] text-white rounded-full transition-colors transform hover:bg-[#3b39d1] hover:scale-110"
             >
               <FaArrowLeft className="h-5 w-5" aria-hidden="true" />
             </button>
             <button
               onClick={handleNext}
               aria-label="Next Feature"
-              className="p-2 bg-[#4c48ec] text-white rounded-full hover:bg-[#3b39d1] transition-colors"
+              className="p-2 bg-[#4c48ec] text-white rounded-full transition-colors transform hover:bg-[#3b39d1] hover:scale-110"
             >
               <FaArrowRight className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
           {/* Dot Navigation */}
           <div className="flex justify-center mt-4 gap-2">
-            {features.map((_, index) => (
+            {groups.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                aria-label={`View feature ${index + 1}`}
+                aria-label={`View slide ${index + 1}`}
                 className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-[#4c48ec]' : 'bg-gray-300'}`}
               />
             ))}
@@ -240,7 +250,7 @@ export const Landing = () => {
           <h2 className="text-3xl font-bold mb-8">Ready to Start Sharing?</h2>
           <Link
             to="/register"
-            className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+            className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition transform hover:scale-105"
           >
             Join Now - It's Free!
           </Link>
