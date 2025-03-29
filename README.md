@@ -153,7 +153,7 @@ src/
   - Email: vipulbeniwal01@gmail.com
 
 - **Mohit Chaudhary** - _Frontend Lead Developer_
-  - GitHub: [@mohitchaudhary](https://github.com/m0hitchaudhary)
+  - GitHub: [@m0hitchaudhary](https://github.com/m0hitchaudhary)
   - LinkedIn: [Mohit Chaudhary](https://www.linkedin.com/in/m0hitchaudhary)
   - Email: 11chaudharymohit@gmail.com
 
