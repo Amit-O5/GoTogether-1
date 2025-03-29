@@ -149,8 +149,13 @@ src/
 
 - **Vipul Beniwal** - _Project Lead & Full Stack Developer_
   - GitHub: [@vipulbeniwal01](https://github.com/vipulbeniwal01)
-  - LinkedIn: [Vipul Beniwal](https://www.linkedin.com/in/vipul-beniwal)
+  - LinkedIn: [Vipul Beniwal](https://www.linkedin.com/in/vipulbeniwal01)
   - Email: vipulbeniwal01@gmail.com
+
+- **Mohit Chaudhary** - _Frontend Lead Developer_
+  - GitHub: [@mohitchaudhary](https://github.com/m0hitchaudhary)
+  - LinkedIn: [Mohit Chaudhary](https://www.linkedin.com/in/m0hitchaudhary)
+  - Email: 11chaudharymohit@gmail.com
 
 ## 📝 License
 
