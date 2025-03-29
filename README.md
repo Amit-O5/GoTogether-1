@@ -145,6 +145,13 @@ src/
 └── styles/        # Global styles and Tailwind utilities
 ```
 
+## 👥 Core Team
+
+- **Vipul Beniwal** - _Project Lead & Full Stack Developer_
+  - GitHub: [@vipulbeniwal01](https://github.com/vipulbeniwal01)
+  - LinkedIn: [Vipul Beniwal](https://www.linkedin.com/in/vipul-beniwal)
+  - Email: vipulbeniwal01@gmail.com
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
