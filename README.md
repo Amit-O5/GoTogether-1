@@ -130,8 +130,9 @@ Powerful search capabilities for finding the perfect ride:
 - **State Management**: React Context API and SWR for data fetching
 - **Routing**: React Router v6
 - **UI Components**: HeadlessUI and HeroIcons
-- **Maps**: React Leaflet for interactive mapping
+- **Maps**: Google Maps API for interactive mapping and location services
 - **Notifications**: React Hot Toast
+- **Database**: MongoDB for data storage and management
 
 ## 📋 Project Structure
 
