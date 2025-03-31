@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { GoogleMapsProvider } from './contexts/GoogleMapsContext';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Rides from './pages/Rides';
@@ -27,9 +28,9 @@ function App() {
       <AuthProvider>
         <GoogleMapsProvider>
           <Toaster position="top-right" />
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen bg-background flex flex-col">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 flex-grow">
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Landing />} />
@@ -111,6 +112,7 @@ function App() {
                 />
               </Routes>
             </main>
+            <Footer />
           </div>
         </GoogleMapsProvider>
       </AuthProvider>
