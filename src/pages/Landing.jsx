@@ -176,183 +176,169 @@ export const Landing = () => {
   return (
     <section className="min-h-screen bg-white relative overflow-hidden h-full w-full">
       <div className="absolute inset-0 bg-[#4c48ec]/5" />
-      <div className="container px-4 sm:px-6 lg:px-20 max-w-full h-full flex flex-col items-center flex-grow">
-        {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 relative w-full h-full flex-grow py-8 sm:py-12 lg:py-0">
-          <div className="w-full lg:w-[500px] z-10 relative text-center lg:text-left">
+      
+      {/* Main container with proper max-width and padding */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        {/* Hero Section with fixed layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center py-8 sm:py-12 lg:py-16">
+          {/* Content Section */}
+          <div className="w-full order-2 lg:order-1">
             {isAuthenticated ? (
-              <div className="max-w-7xl mx-auto w-full">
-                {/* Welcome Banner */}
-                <div className="bg-gradient-to-r from-[#4c48ec] to-[#3b39d1] rounded-2xl shadow-xl p-8 mb-8 text-white">
-                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+              <>
+                {/* Authenticated user content */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <div>
-                      <h1 className="text-3xl sm:text-4xl font-bold">
-                        Welcome back, {user?.firstName || 'Traveler'}! 👋
+                      <h1 className="text-3xl sm:text-4xl font-bold text-[#010D3E]">
+                        Welcome back, {user?.firstName || 'Traveler'}!
                       </h1>
-                      <p className="text-white/90 mt-2 text-lg">
-                        Your journey dashboard awaits
+                      <p className="text-base sm:text-lg text-[#010D3E]/80 mt-2">
+                        Ready for your next journey? Here's your travel dashboard.
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-6 bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <div className="text-2xl font-bold">0</div>
-                        <div className="text-sm text-white/80">Total Rides</div>
+                        <div className="text-2xl font-bold text-[#4c48ec]">0</div>
+                        <div className="text-sm text-gray-600">Total Rides</div>
                       </div>
-                      <div className="w-px bg-white/20"></div>
+                      <div className="h-8 w-px bg-gray-200"></div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold">$0</div>
-                        <div className="text-sm text-white/80">Saved</div>
+                        <div className="text-2xl font-bold text-green-500">$0</div>
+                        <div className="text-sm text-gray-600">Saved</div>
                       </div>
-                      <div className="w-px bg-white/20"></div>
+                      <div className="h-8 w-px bg-gray-200"></div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold">0 kg</div>
-                        <div className="text-sm text-white/80">CO₂ Reduced</div>
+                        <div className="text-2xl font-bold text-amber-500">0 kg</div>
+                        <div className="text-sm text-gray-600">CO₂ Reduced</div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Main Content Column */}
-                  <div className="lg:col-span-2 space-y-8">
-                    {/* Quick Actions */}
-                    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                      <h2 className="text-xl font-semibold mb-4 text-gray-900">Quick Actions</h2>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {quickActions.map((action, index) => (
-                          <button
-                            key={index}
-                            onClick={action.action}
-                            className={`${action.color} text-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 group`}
-                          >
-                            <div className="flex flex-col items-center text-center">
-                              <div className="p-3 bg-white/20 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                                {action.icon}
-                              </div>
-                              <h3 className="text-lg font-semibold">{action.title}</h3>
-                              <p className="text-sm text-white/90 mt-2">{action.description}</p>
-                            </div>
-                          </button>
-                        ))}
+                {/* Quick Actions Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                  {quickActions.map((action, index) => (
+                    <button
+                      key={index}
+                      onClick={action.action}
+                      className={`${action.color} text-white p-6 rounded-xl shadow-lg hover:opacity-90 transition-all duration-300 flex flex-col items-center text-center transform hover:scale-105`}
+                    >
+                      <div className="p-3 bg-white/20 rounded-full mb-3">
+                        {action.icon}
                       </div>
-                    </div>
+                      <h3 className="text-lg font-semibold">{action.title}</h3>
+                      <p className="text-sm text-white/90 mt-2">{action.description}</p>
+                    </button>
+                  ))}
+                </div>
 
-                    {/* Recent Activity and Upcoming Section */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      {/* Recent Activity */}
-                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <FaHistory className="text-[#4c48ec]" />
-                            Recent Activity
-                          </h3>
-                          <Link to="/my-rides" className="text-sm text-[#4c48ec] hover:text-[#3b39d1] font-medium">
-                            View All
-                          </Link>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                            <FaRegClock className="text-gray-400" />
-                            <span>No recent activity to show</span>
-                          </div>
-                        </div>
+                {/* Features and Benefits Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-md border border-indigo-100">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-indigo-100 rounded-lg">
+                        <FaRoute className="h-6 w-6 text-indigo-600" />
                       </div>
-
-                      {/* Upcoming Rides */}
-                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <FaCalendarAlt className="text-[#4c48ec]" />
-                            Upcoming Rides
-                          </h3>
-                          <Link to="/rides" className="text-sm text-[#4c48ec] hover:text-[#3b39d1] font-medium">
-                            Find Rides
-                          </Link>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                            <FaCalendarAlt className="text-gray-400" />
-                            <span>No upcoming rides scheduled</span>
-                          </div>
-                        </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-indigo-900">Smart Route Matching</h3>
+                        <p className="text-indigo-700/80 mt-2">Find rides that perfectly match your route and schedule.</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Side Column */}
-                  <div className="space-y-8">
-                    {/* Profile Completion */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Completion</h3>
-                      <div className="space-y-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-[#4c48ec] h-2 rounded-full" style={{ width: '30%' }}></div>
-                        </div>
-                        <p className="text-sm text-gray-600">Complete your profile to increase trust and get more ride matches.</p>
-                        <Link 
-                          to="/profile" 
-                          className="inline-flex items-center text-sm font-medium text-[#4c48ec] hover:text-[#3b39d1]"
-                        >
-                          Complete Profile
-                          <FaArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
+                  <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl shadow-md border border-green-100">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-green-100 rounded-lg">
+                        <FaLeaf className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-green-900">Eco Impact</h3>
+                        <p className="text-green-700/80 mt-2">Track your contribution to reducing carbon emissions.</p>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Tips and Recommendations */}
-                    <div className="bg-gradient-to-br from-[#4c48ec]/5 to-[#3b39d1]/5 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Travel Tips</h3>
-                      <div className="space-y-4">
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                          <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
-                            <FaStar className="h-5 w-5" />
-                            <span className="font-medium">Verify Your Account</span>
-                          </div>
-                          <p className="text-sm text-gray-600">Add your phone number and email to get verified status.</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                          <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
-                            <FaUserFriends className="h-5 w-5" />
-                            <span className="font-medium">Build Your Network</span>
-                          </div>
-                          <p className="text-sm text-gray-600">Connect with regular travelers on your route.</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                          <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
-                            <FaBell className="h-5 w-5" />
-                            <span className="font-medium">Stay Notified</span>
-                          </div>
-                          <p className="text-sm text-gray-600">Enable notifications for ride updates and matches.</p>
-                        </div>
+                  <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-md border border-blue-100">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-blue-100 rounded-lg">
+                        <FaShieldAlt className="h-6 w-6 text-blue-600" />
                       </div>
-                    </div>
-
-                    {/* Environmental Impact */}
-                    <div className="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 border border-green-100">
-                      <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
-                        <FaLeaf className="text-green-600" />
-                        Environmental Impact
-                      </h3>
-                      <div className="text-center py-4">
-                        <div className="text-3xl font-bold text-green-600 mb-2">0 kg</div>
-                        <p className="text-sm text-green-700">CO₂ emissions saved</p>
-                        <p className="text-xs text-green-600/80 mt-2">
-                          Equivalent to planting 0 trees
-                        </p>
+                      <div>
+                        <h3 className="font-semibold text-lg text-blue-900">Verified Community</h3>
+                        <p className="text-blue-700/80 mt-2">Travel with confidence in our trusted network.</p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Recent Activity and Upcoming Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Recent Activity */}
+                  <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                      <Link to="/my-rides" className="text-sm text-indigo-600 hover:text-indigo-800">View All</Link>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <FaRegClock className="h-4 w-4" />
+                        <span>No recent activity to show</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upcoming Rides */}
+                  <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Upcoming Rides</h3>
+                      <Link to="/rides" className="text-sm text-indigo-600 hover:text-indigo-800">Find Rides</Link>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <FaCalendarAlt className="h-4 w-4" />
+                        <span>No upcoming rides scheduled</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tips and Recommendations */}
+                <div className="bg-gradient-to-r from-[#4c48ec]/10 to-[#3b39d1]/10 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-[#010D3E] mb-4">Tips for Better Rides</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4">
+                      <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
+                        <FaStar className="h-5 w-5" />
+                        <span className="font-medium">Complete Your Profile</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Add a photo and verify your account to build trust.</p>
+                    </div>
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4">
+                      <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
+                        <FaUserFriends className="h-5 w-5" />
+                        <span className="font-medium">Be Social</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Interact with co-travelers and build your network.</p>
+                    </div>
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4">
+                      <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
+                        <FaBell className="h-5 w-5" />
+                        <span className="font-medium">Stay Updated</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Enable notifications to never miss a ride opportunity.</p>
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
               <>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-[#010D3E] mt-4 sm:mt-6">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-[#010D3E]">
                   Welcome to GoTogether
                 </h1>
-                <p className="text-base sm:text-lg lg:text-xl text-[#010D3E] tracking-tight mt-4 sm:mt-6 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                <p className="text-base sm:text-lg lg:text-xl text-[#010D3E] tracking-tight mt-4 sm:mt-6 max-w-xl leading-relaxed">
                   Share rides, reduce costs, and make new connections. Join our community of travelers making transportation more sustainable and social.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start items-center mt-6 sm:mt-8 lg:mt-10">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
                   <Link
                     to="/register"
                     className="w-full sm:w-auto bg-[#4c48ec] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold inline-flex items-center justify-center tracking-tight hover:bg-[#3b39d1] transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
@@ -372,112 +358,114 @@ export const Landing = () => {
               </>
             )}
           </div>
-          <div className="w-full sm:w-[90%] lg:w-[55%] mx-auto relative flex justify-center items-center min-h-[300px] sm:min-h-[400px] h-full">
+
+          {/* Image Section */}
+          <div className="w-full flex justify-center items-center order-1 lg:order-2">
             <img
               src={carImage}
               alt="Illustrative car graphic"
-              className="w-full h-auto object-contain max-w-[400px] sm:max-w-[500px] lg:max-w-[700px] drop-shadow-2xl"
+              className="w-full h-auto object-contain max-w-[400px] sm:max-w-[500px] lg:max-w-[600px] drop-shadow-2xl"
             />
           </div>
         </div>
-      </div>
 
-      {/* Features Carousel Section */}
-      {!isAuthenticated && (
-        <div className="mt-20 sm:mt-24 lg:mt-40 px-4">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-3 sm:mb-4 text-[#010D3E]">
-            Why Choose GoTogether?
-          </h2>
-          <p className="text-center text-lg sm:text-xl text-[#010D3E]/80 mb-8 sm:mb-12 lg:mb-16 max-w-2xl mx-auto px-4">
-            Experience the future of shared transportation
-          </p>
-          <div className="max-w-7xl mx-auto relative">
-            <div className="overflow-hidden">
-              <div
-                className="flex transition-transform duration-1000 ease-in-out"
-                style={{ transform: getTransformValue() }}
-              >
-                {features.map((feature, index) => (
-                  <div key={index} className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-2 sm:px-4">
-                    <FeatureCard 
-                      icon={feature.icon} 
-                      title={feature.title} 
-                      description={feature.description} 
-                    />
-                  </div>
-                ))}
-                {/* Duplicate first few cards for smooth loop */}
-                {features.slice(0, window.innerWidth < 640 ? 1 : 
-                                  window.innerWidth < 1024 ? 2 : 3).map((feature, index) => (
-                  <div key={`duplicate-${index}`} className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-2 sm:px-4">
-                    <FeatureCard 
-                      icon={feature.icon} 
-                      title={feature.title} 
-                      description={feature.description} 
-                    />
-                  </div>
+        {/* Features Carousel Section */}
+        {!isAuthenticated && (
+          <div className="mt-20 sm:mt-24 lg:mt-32">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-3 sm:mb-4 text-[#010D3E]">
+              Why Choose GoTogether?
+            </h2>
+            <p className="text-center text-lg sm:text-xl text-[#010D3E]/80 mb-8 sm:mb-12 lg:mb-16 max-w-2xl mx-auto px-4">
+              Experience the future of shared transportation
+            </p>
+            <div className="max-w-7xl mx-auto relative">
+              <div className="overflow-hidden">
+                <div
+                  className="flex transition-transform duration-1000 ease-in-out"
+                  style={{ transform: getTransformValue() }}
+                >
+                  {features.map((feature, index) => (
+                    <div key={index} className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-2 sm:px-4">
+                      <FeatureCard 
+                        icon={feature.icon} 
+                        title={feature.title} 
+                        description={feature.description} 
+                      />
+                    </div>
+                  ))}
+                  {/* Duplicate first few cards for smooth loop */}
+                  {features.slice(0, window.innerWidth < 640 ? 1 : 
+                                    window.innerWidth < 1024 ? 2 : 3).map((feature, index) => (
+                    <div key={`duplicate-${index}`} className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-2 sm:px-4">
+                      <FeatureCard 
+                        icon={feature.icon} 
+                        title={feature.title} 
+                        description={feature.description} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Dot Navigation */}
+              <div className="flex justify-center mt-6 sm:mt-8 gap-2 sm:gap-3">
+                {Array.from({ length: features.length }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    aria-label={`View slide ${index + 1}`}
+                    className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                      currentIndex === index 
+                        ? 'bg-[#4c48ec] w-6 sm:w-8' 
+                        : 'bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
                 ))}
               </div>
             </div>
-            {/* Dot Navigation */}
-            <div className="flex justify-center mt-6 sm:mt-8 gap-2 sm:gap-3">
-              {Array.from({ length: features.length }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  aria-label={`View slide ${index + 1}`}
-                  className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                    currentIndex === index 
-                      ? 'bg-[#4c48ec] w-6 sm:w-8' 
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                />
-              ))}
+          </div>
+        )}
+
+        {/* How It Works Section */}
+        {!isAuthenticated && (
+          <div className="mt-20 sm:mt-24 lg:mt-32 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#4c48ec]/5 to-transparent rounded-3xl -mx-4 -my-8" />
+            <div className="relative">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-3 sm:mb-4 bg-gradient-to-r from-[#4c48ec] to-[#3b39d1] bg-clip-text text-transparent">
+                How GoTogether Works
+              </h2>
+              <p className="text-center text-lg sm:text-xl text-[#010D3E]/80 mb-8 sm:mb-12 lg:mb-16 max-w-2xl mx-auto px-4">
+                Get started with GoTogether in four simple steps
+              </p>
+              <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 py-8 sm:py-12 lg:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                {howItWorks.map((step, index) => (
+                  <HowItWorksStep
+                    key={index}
+                    icon={step.icon}
+                    title={step.title}
+                    description={step.description}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* How It Works Section - Only show for non-authenticated users */}
-      {!isAuthenticated && (
-        <div className="mt-20 sm:mt-24 lg:mt-40 px-4 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#4c48ec]/5 to-transparent rounded-3xl -mx-4 -my-8" />
-          <div className="relative">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-3 sm:mb-4 bg-gradient-to-r from-[#4c48ec] to-[#3b39d1] bg-clip-text text-transparent">
-              How GoTogether Works
-            </h2>
-            <p className="text-center text-lg sm:text-xl text-[#010D3E]/80 mb-8 sm:mb-12 lg:mb-16 max-w-2xl mx-auto px-4">
-              Get started with GoTogether in four simple steps
-            </p>
-            <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 py-8 sm:py-12 lg:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-              {howItWorks.map((step, index) => (
-                <HowItWorksStep
-                  key={index}
-                  icon={step.icon}
-                  title={step.title}
-                  description={step.description}
-                />
-              ))}
+        {/* CTA Footer Section */}
+        {!isAuthenticated && (
+          <div className="mt-20 sm:mt-24 lg:mt-32 bg-[#4c48ec] text-white py-12 sm:py-16 lg:py-20 -mx-4 sm:-mx-6 lg:-mx-8">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Ready to Start Sharing?</h2>
+              <p className="text-lg sm:text-xl mb-6 sm:mb-8 text-white/90">Join thousands of travelers making their journeys more sustainable and social.</p>
+              <Link
+                to="/register"
+                className="inline-block bg-white text-[#4c48ec] px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
+              >
+                Join Now - It's Free!
+              </Link>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* CTA Footer Section - Only show for non-authenticated users */}
-      {!isAuthenticated && (
-        <div className="bg-[#4c48ec] text-white py-12 sm:py-16 lg:py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Ready to Start Sharing?</h2>
-            <p className="text-lg sm:text-xl mb-6 sm:mb-8 text-white/90">Join thousands of travelers making their journeys more sustainable and social.</p>
-            <Link
-              to="/register"
-              className="inline-block bg-white text-[#4c48ec] px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
-            >
-              Join Now - It's Free!
-            </Link>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 };
