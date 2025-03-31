@@ -21,13 +21,13 @@ const FeatureCard = ({ icon, title, description }) => (
 
 //Reusable
 const HowItWorksStep = ({ icon, title, description, stepNumber }) => (
-  <div className="w-full p-8 bg-white/80 rounded-xl shadow-lg hover:shadow-2xl transform transition-transform duration-300 hover:scale-105">
-    <div className="flex flex-col items-center text-center">
-      <div className="bg-[#4c48ec]/10 p-4 rounded-full mb-4">
+  <div className="w-full max-w-md mx-auto p-8 bg-white/80 rounded-xl shadow-lg hover:shadow-2xl transform transition-transform duration-300 hover:scale-105">
+    <div className="flex flex-col items-center text-center gap-4">
+      <div className="bg-[#4c48ec]/10 p-5 rounded-full mb-4">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold mb-3">{title}</h3>
-      <p className="text-[#010D3E] flex-grow">{description}</p>
+      <h3 className="text-2xl font-semibold mb-3">{title}</h3>
+      <p className="text-[#010D3E] flex-grow text-lg">{description}</p>
     </div>
   </div>
 );
@@ -211,7 +211,7 @@ export const Landing = () => {
         <p className="text-center text-lg text-[#010D3E] mb-12 max-w-2xl mx-auto">
           Get started with GoTogether in four simple steps
         </p>
-        <div className="max-w-7xl mx-auto py-6 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-16">
           {howItWorks.map((step, index) => (
             <HowItWorksStep
               key={index}
