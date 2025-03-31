@@ -242,7 +242,7 @@ export const Landing = () => {
                 <div className="mb-12">
                   <h2 className="text-2xl font-bold text-[#010D3E] mb-6 flex items-center gap-2">
                     <FaStar className="text-[#4c48ec]" />
-                    Premium Features
+                    Features
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-md border border-indigo-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
