@@ -185,28 +185,28 @@ export const Landing = () => {
           <div className={`w-full ${isAuthenticated ? '' : 'order-2 lg:order-1'}`}>
             {isAuthenticated ? (
               <>
-                {/* Authenticated user content */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                {/* Overview Dashboard Section */}
+                <div className="bg-gradient-to-r from-[#4c48ec]/10 via-white to-[#3b39d1]/10 rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div>
-                      <h1 className="text-3xl sm:text-4xl font-bold text-[#010D3E]">
-                        Welcome back, {user?.firstName || 'Traveler'}!
+                      <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#4c48ec] to-[#3b39d1] bg-clip-text text-transparent">
+                        Welcome back, {user?.firstName || 'Traveler'}! 👋
                       </h1>
                       <p className="text-base sm:text-lg text-[#010D3E]/80 mt-2">
-                        Ready for your next journey? Here's your travel dashboard.
+                        Your personal travel dashboard awaits with exciting opportunities.
                       </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6 bg-white p-4 rounded-xl shadow-sm">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-[#4c48ec]">0</div>
-                        <div className="text-sm text-gray-600">Total Rides</div>
+                        <div className="text-sm text-gray-600">Rides Shared</div>
                       </div>
-                      <div className="h-8 w-px bg-gray-200"></div>
+                      <div className="h-12 w-px bg-gray-200"></div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-green-500">$0</div>
-                        <div className="text-sm text-gray-600">Saved</div>
+                        <div className="text-sm text-gray-600">Cost Saved</div>
                       </div>
-                      <div className="h-8 w-px bg-gray-200"></div>
+                      <div className="h-12 w-px bg-gray-200"></div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-amber-500">0 kg</div>
                         <div className="text-sm text-gray-600">CO₂ Reduced</div>
@@ -215,117 +215,142 @@ export const Landing = () => {
                   </div>
                 </div>
 
-                {/* Quick Actions Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                  {quickActions.map((action, index) => (
-                    <button
-                      key={index}
-                      onClick={action.action}
-                      className={`${action.color} text-white p-6 rounded-xl shadow-lg hover:opacity-90 transition-all duration-300 flex flex-col items-center text-center transform hover:scale-105`}
-                    >
-                      <div className="p-3 bg-white/20 rounded-full mb-3">
-                        {action.icon}
-                      </div>
-                      <h3 className="text-lg font-semibold">{action.title}</h3>
-                      <p className="text-sm text-white/90 mt-2">{action.description}</p>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Features and Benefits Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-md border border-indigo-100">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-indigo-100 rounded-lg">
-                        <FaRoute className="h-6 w-6 text-indigo-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-indigo-900">Smart Route Matching</h3>
-                        <p className="text-indigo-700/80 mt-2">Find rides that perfectly match your route and schedule.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl shadow-md border border-green-100">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-green-100 rounded-lg">
-                        <FaLeaf className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-green-900">Eco Impact</h3>
-                        <p className="text-green-700/80 mt-2">Track your contribution to reducing carbon emissions.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-md border border-blue-100">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-blue-100 rounded-lg">
-                        <FaShieldAlt className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-blue-900">Verified Community</h3>
-                        <p className="text-blue-700/80 mt-2">Travel with confidence in our trusted network.</p>
-                      </div>
-                    </div>
+                {/* Quick Actions Section */}
+                <div className="mb-12">
+                  <h2 className="text-2xl font-bold text-[#010D3E] mb-6 flex items-center gap-2">
+                    <FaRoute className="text-[#4c48ec]" />
+                    Quick Actions
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {quickActions.map((action, index) => (
+                      <button
+                        key={index}
+                        onClick={action.action}
+                        className={`${action.color} text-white p-6 rounded-xl shadow-lg hover:opacity-90 transition-all duration-300 flex flex-col items-center text-center transform hover:scale-105 hover:rotate-1`}
+                      >
+                        <div className="p-3 bg-white/20 rounded-full mb-3 backdrop-blur-sm">
+                          {action.icon}
+                        </div>
+                        <h3 className="text-lg font-semibold">{action.title}</h3>
+                        <p className="text-sm text-white/90 mt-2">{action.description}</p>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Recent Activity and Upcoming Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  {/* Recent Activity */}
-                  <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-                      <Link to="/my-rides" className="text-sm text-indigo-600 hover:text-indigo-800">View All</Link>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <FaRegClock className="h-4 w-4" />
-                        <span>No recent activity to show</span>
+                {/* Features and Benefits Section */}
+                <div className="mb-12">
+                  <h2 className="text-2xl font-bold text-[#010D3E] mb-6 flex items-center gap-2">
+                    <FaStar className="text-[#4c48ec]" />
+                    Premium Features
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-md border border-indigo-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-indigo-100 rounded-lg">
+                          <FaRoute className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg text-indigo-900">Smart Route Matching</h3>
+                          <p className="text-indigo-700/80 mt-2">AI-powered route matching for perfect travel companions.</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Upcoming Rides */}
-                  <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Upcoming Rides</h3>
-                      <Link to="/rides" className="text-sm text-indigo-600 hover:text-indigo-800">Find Rides</Link>
+                    <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl shadow-md border border-green-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-green-100 rounded-lg">
+                          <FaLeaf className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg text-green-900">Environmental Impact</h3>
+                          <p className="text-green-700/80 mt-2">Real-time tracking of your carbon footprint reduction.</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <FaCalendarAlt className="h-4 w-4" />
-                        <span>No upcoming rides scheduled</span>
+
+                    <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-md border border-blue-100 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-blue-100 rounded-lg">
+                          <FaShieldAlt className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg text-blue-900">Enhanced Security</h3>
+                          <p className="text-blue-700/80 mt-2">Advanced verification and secure payment system.</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Tips and Recommendations */}
-                <div className="bg-gradient-to-r from-[#4c48ec]/10 to-[#3b39d1]/10 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-[#010D3E] mb-4">Tips for Better Rides</h3>
+                {/* Activity Dashboard Section */}
+                <div className="mb-12">
+                  <h2 className="text-2xl font-bold text-[#010D3E] mb-6 flex items-center gap-2">
+                    <FaHistory className="text-[#4c48ec]" />
+                    Activity Dashboard
+                  </h2>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Recent Activity */}
+                    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                        <Link to="/my-rides" className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                          View All <FaArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+                          <FaRegClock className="h-4 w-4 text-[#4c48ec]" />
+                          <span>No recent activity to show</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Upcoming Rides */}
+                    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Upcoming Rides</h3>
+                        <Link to="/rides" className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                          Find Rides <FaArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+                          <FaCalendarAlt className="h-4 w-4 text-[#4c48ec]" />
+                          <span>No upcoming rides scheduled</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pro Tips Section */}
+                <div className="bg-gradient-to-r from-[#4c48ec]/10 to-[#3b39d1]/10 rounded-xl p-8">
+                  <h2 className="text-2xl font-bold text-[#010D3E] mb-6 flex items-center gap-2">
+                    <FaBell className="text-[#4c48ec]" />
+                    Pro Tips & Recommendations
+                  </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4">
-                      <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-lg p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex items-center gap-3 text-[#4c48ec] mb-3">
                         <FaStar className="h-5 w-5" />
-                        <span className="font-medium">Complete Your Profile</span>
+                        <span className="font-medium">Enhance Your Profile</span>
                       </div>
-                      <p className="text-sm text-gray-600">Add a photo and verify your account to build trust.</p>
+                      <p className="text-sm text-gray-600">Complete your profile with a photo and verification to increase trust and booking success.</p>
                     </div>
-                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4">
-                      <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-lg p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex items-center gap-3 text-[#4c48ec] mb-3">
                         <FaUserFriends className="h-5 w-5" />
-                        <span className="font-medium">Be Social</span>
+                        <span className="font-medium">Build Your Network</span>
                       </div>
-                      <p className="text-sm text-gray-600">Interact with co-travelers and build your network.</p>
+                      <p className="text-sm text-gray-600">Connect with regular travelers on your route to create a reliable travel circle.</p>
                     </div>
-                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4">
-                      <div className="flex items-center gap-3 text-[#4c48ec] mb-2">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-lg p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex items-center gap-3 text-[#4c48ec] mb-3">
                         <FaBell className="h-5 w-5" />
-                        <span className="font-medium">Stay Updated</span>
+                        <span className="font-medium">Stay Notified</span>
                       </div>
-                      <p className="text-sm text-gray-600">Enable notifications to never miss a ride opportunity.</p>
+                      <p className="text-sm text-gray-600">Enable push notifications to get instant updates about ride matches and requests.</p>
                     </div>
                   </div>
                 </div>
