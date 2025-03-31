@@ -226,13 +226,13 @@ export const Landing = () => {
                       <button
                         key={index}
                         onClick={action.action}
-                        className={`${action.color} text-white p-6 rounded-xl shadow-lg hover:opacity-90 transition-all duration-300 flex flex-col items-center text-center transform hover:scale-105 hover:rotate-1`}
+                        className={`${action.color} text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center transform hover:scale-[1.03] active:scale-[0.98]`}
                       >
-                        <div className="p-3 bg-white/20 rounded-full mb-3 backdrop-blur-sm">
+                        <div className="p-3 bg-white/20 rounded-full mb-3 backdrop-blur-sm transform transition-transform duration-300 group-hover:scale-110">
                           {action.icon}
                         </div>
-                        <h3 className="text-lg font-semibold">{action.title}</h3>
-                        <p className="text-sm text-white/90 mt-2">{action.description}</p>
+                        <h3 className="text-lg font-semibold transition-all duration-300">{action.title}</h3>
+                        <p className="text-sm text-white/90 mt-2 transition-all duration-300">{action.description}</p>
                       </button>
                     ))}
                   </div>
