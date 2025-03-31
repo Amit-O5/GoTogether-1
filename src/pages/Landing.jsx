@@ -328,7 +328,7 @@ export const Landing = () => {
                 <div className="bg-gradient-to-r from-[#4c48ec]/10 to-[#3b39d1]/10 rounded-xl p-8">
                   <h2 className="text-2xl font-bold text-[#010D3E] mb-6 flex items-center gap-2">
                     <FaBell className="text-[#4c48ec]" />
-                    Pro Tips & Recommendations
+                    Tips & Recommendations
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="bg-white/90 backdrop-blur-sm rounded-lg p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
