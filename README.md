@@ -1,7 +1,7 @@
 # GoTogether
 
 <div align="center">
-  <img src="https://github.com/vipulbeniwal01/GoTogether/blob/main/public/favicon.ico" alt="GoTogether Logo" width="180">
+  <img src="https://github.com/vipulbeniwal01/GoTogether/blob/main/public/car.svg" alt="GoTogether Logo" width="180">
   <p><em>Plan journeys together. Travel as one.</em></p>
 </div>
 
