@@ -180,9 +180,9 @@ export const Landing = () => {
       {/* Main container with proper max-width and padding */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         {/* Hero Section with fixed layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center py-8 sm:py-12 lg:py-16">
+        <div className={`grid grid-cols-1 ${!isAuthenticated ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-8 lg:gap-12 items-center py-8 sm:py-12 lg:py-16`}>
           {/* Content Section */}
-          <div className="w-full order-2 lg:order-1">
+          <div className={`w-full ${isAuthenticated ? '' : 'order-2 lg:order-1'}`}>
             {isAuthenticated ? (
               <>
                 {/* Authenticated user content */}
@@ -359,14 +359,16 @@ export const Landing = () => {
             )}
           </div>
 
-          {/* Image Section */}
-          <div className="w-full flex justify-center items-center order-1 lg:order-2">
-            <img
-              src={carImage}
-              alt="Illustrative car graphic"
-              className="w-full h-auto object-contain max-w-[400px] sm:max-w-[500px] lg:max-w-[600px] drop-shadow-2xl"
-            />
-          </div>
+          {/* Image Section - Only show for non-authenticated users */}
+          {!isAuthenticated && (
+            <div className="w-full flex justify-center items-center order-1 lg:order-2">
+              <img
+                src={carImage}
+                alt="Illustrative car graphic"
+                className="w-full h-auto object-contain max-w-[400px] sm:max-w-[500px] lg:max-w-[600px] drop-shadow-2xl"
+              />
+            </div>
+          )}
         </div>
 
         {/* Features Carousel Section */}
