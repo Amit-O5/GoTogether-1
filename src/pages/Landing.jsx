@@ -201,30 +201,30 @@ export const Landing = () => {
             {isAuthenticated ? (
               <>
                 {/* Overview Dashboard Section */}
-                <div className="bg-gradient-to-r from-[#4c48ec]/10 via-white to-[#3b39d1]/10 rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
-                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div>
-                      <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#4c48ec] to-[#3b39d1] bg-clip-text text-transparent">
+                <div className="bg-gradient-to-r from-[#4c48ec]/10 via-white to-[#3b39d1]/10 rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 border border-gray-100">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-6">
+                    <div className="w-full lg:w-auto">
+                      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#4c48ec] to-[#3b39d1] bg-clip-text text-transparent mb-2 sm:mb-3">
                         Welcome back, {user?.firstName || 'Traveler'}! 👋
                       </h1>
-                      <p className="text-base sm:text-lg text-[#010D3E]/80 mt-2">
+                      <p className="text-sm sm:text-base lg:text-lg text-[#010D3E]/80">
                         Your personal travel dashboard awaits with exciting opportunities.
                       </p>
                     </div>
-                    <div className="flex items-center gap-6 bg-white p-4 rounded-xl shadow-sm">
+                    <div className="w-full lg:w-auto grid grid-cols-3 sm:flex items-center gap-3 sm:gap-6 bg-white p-3 sm:p-4 rounded-xl shadow-sm">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-[#4c48ec]">0</div>
-                        <div className="text-sm text-gray-600">Rides Shared</div>
+                        <div className="text-xl sm:text-2xl font-bold text-[#4c48ec]">0</div>
+                        <div className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Rides Shared</div>
                       </div>
-                      <div className="h-12 w-px bg-gray-200"></div>
+                      <div className="hidden sm:block h-12 w-px bg-gray-200"></div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-green-500">$0</div>
-                        <div className="text-sm text-gray-600">Cost Saved</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-500">$0</div>
+                        <div className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Cost Saved</div>
                       </div>
-                      <div className="h-12 w-px bg-gray-200"></div>
+                      <div className="hidden sm:block h-12 w-px bg-gray-200"></div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-amber-500">0 kg</div>
-                        <div className="text-sm text-gray-600">CO₂ Reduced</div>
+                        <div className="text-xl sm:text-2xl font-bold text-amber-500">0</div>
+                        <div className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">kg CO₂ Saved</div>
                       </div>
                     </div>
                   </div>
