@@ -8,35 +8,26 @@ import { useEffect, useState } from 'react';
 
 // Reusable component for feature cards
 const FeatureCard = ({ icon, title, description }) => (
-  <div className="p-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transform transition-transform duration-300 hover:scale-105">
+  <div className="p-8 bg-white/80 rounded-xl shadow-lg hover:shadow-2xl transform transition-transform duration-300 hover:scale-105 min-h-[320px] flex-1">
     <div className="flex flex-col items-center text-center">
       <div className="bg-[#4c48ec]/10 p-4 rounded-full mb-4">
         {icon}
       </div>
       <h3 className="text-xl font-semibold mb-3">{title}</h3>
-      <p className="text-[#010D3E]">{description}</p>
+      <p className="text-[#010D3E] flex-grow">{description}</p>
     </div>
   </div>
 );
 
-// Reusable component for "How It Works" steps
-const HowItWorksStep = ({ icon, title, description, stepNumber, reverse }) => (
-  <div className={`flex flex-col md:flex-row gap-8 items-center mb-24 relative ${reverse ? 'md:flex-row-reverse' : ''}`}>
-    <div className={`w-full md:w-1/2 ${reverse ? 'md:pl-12' : 'md:pr-12'} relative z-10`}>
-      <div className="flex items-start gap-6">
-        <div className="bg-[#4c48ec]/10 p-4 rounded-full shrink-0">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-xl font-semibold mb-3">{title}</h3>
-          <p className="text-[#010D3E]">{description}</p>
-        </div>
+//Reusable
+const HowItWorksStep = ({ icon, title, description, stepNumber }) => (
+  <div className="w-full p-8 bg-white/80 rounded-xl shadow-lg hover:shadow-2xl transform transition-transform duration-300 hover:scale-105">
+    <div className="flex flex-col items-center text-center">
+      <div className="bg-[#4c48ec]/10 p-4 rounded-full mb-4">
+        {icon}
       </div>
-    </div>
-    <div className="relative z-20 hidden md:block">
-      <div className="w-12 h-12 rounded-full bg-[#4c48ec] text-white flex items-center justify-center font-bold text-xl">
-        {stepNumber}
-      </div>
+      <h3 className="text-xl font-semibold mb-3">{title}</h3>
+      <p className="text-[#010D3E] flex-grow">{description}</p>
     </div>
   </div>
 );
@@ -112,17 +103,17 @@ export const Landing = () => {
 
   // Manual control handlers
   const handlePrev = () => {
-    setCurrentIndex(prevIndex => (prevIndex - 1 + features.length) % features.length);
+    setCurrentIndex(prev => (prev > 0 ? prev - 1 : features.length - 1));
   };
 
   const handleNext = () => {
-    setCurrentIndex(prevIndex => (prevIndex + 1) % features.length);
+    setCurrentIndex(prev => (prev < features.length - 1 ? prev + 1 : 0));
   };
 
   return (
-    <section className="min-h-screen pt-4 sm:pt-6 md:pt-8 pb-12 sm:pb-16 md:pb-20 bg-[radial-gradient(ellipse_200%_100%_at_bottom_center,#4c48ec,#FFFFFF_30%)] relative overflow-hidden">
-      <div className="container px-4 sm:px-6 lg:px-20 max-w-10xl flex flex-col items-center">
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 relative w-full">
+    <section className="min-h-screen bg-[radial-gradient(ellipse_200%_100%_at_bottom_center,#4c48ec,#FFFFFF_30%)] relative overflow-hidden h-full w-full">
+      <div className="container px-4 sm:px-6 lg:px-20 max-w-full h-full flex flex-col items-center flex-grow">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 relative w-full h-full flex-grow">
           <div className="w-full lg:w-[500px] z-10 relative text-center lg:text-left">
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-b from-black to-[#4c48ec] text-transparent bg-clip-text mt-4 sm:mt-6">
               Welcome to GoTogether
@@ -148,7 +139,7 @@ export const Landing = () => {
               </Link>
             </div>
           </div>
-          <div className="w-full sm:w-[80%] lg:w-1/2 mx-auto mt-12 sm:mt-16 lg:mt-0 relative flex justify-center">
+          <div className="w-full sm:w-[90%] lg:w-[55%] mx-auto relative flex justify-center items-center min-h-[400px] h-full">
             <img
               src={carImage}
               alt="Illustrative car graphic"
@@ -166,7 +157,7 @@ export const Landing = () => {
         <div className="max-w-7xl mx-auto relative">
           <div className="overflow-hidden">
             <div
-              className="flex transition-transform duration-1000 ease-in-out"
+              className="flex transition-transform duration-1000 ease-in-out justify-between gap-8"
               style={{ transform: `translateX(-${Math.min(currentIndex * (100 / 3), (features.length - 3) * (100 / 3))}%)`
             }}
             >
@@ -200,12 +191,12 @@ export const Landing = () => {
           </div>
           {/* Dot Navigation */}
           <div className="flex justify-center mt-4 gap-2">
-          {Array.from({ length: features.length - 3 + 1 }).map((_, index) => (
+          {Array.from({ length: features.length }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 aria-label={`View slide ${index + 1}`}
-                className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-[#4c48ec]' : 'bg-gray-300'}`}
+                className={`w-4 h-4 rounded-full ${currentIndex === index ? 'bg-[#4c48ec]' : 'bg-gray-300'}`}
               />
             ))}
           </div>
@@ -220,8 +211,7 @@ export const Landing = () => {
         <p className="text-center text-lg text-[#010D3E] mb-12 max-w-2xl mx-auto">
           Get started with GoTogether in four simple steps
         </p>
-        <div className="max-w-7xl mx-auto relative">
-          <div className="sm:hidden absolute left-1/2 top-0 bottom-0 w-0.5 bg-[#4c48ec]/20 transform -translate-x-1/2" />
+        <div className="max-w-7xl mx-auto py-6 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
           {howItWorks.map((step, index) => (
             <HowItWorksStep
               key={index}
@@ -229,7 +219,6 @@ export const Landing = () => {
               title={step.title}
               description={step.description}
               stepNumber={index + 1}
-              reverse={index % 2 === 0}
             />
           ))}
         </div>
@@ -252,3 +241,29 @@ export const Landing = () => {
 };
 
 export default Landing;
+
+<div className="w-full px-4 md:px-8 flex flex-col items-center">
+  <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-b from-black to-[#4c48ec] text-transparent bg-clip-text mt-4 sm:mt-6">
+    Welcome to GoTogether
+  </h1>
+  <p className="text-lg sm:text-xl text-[#010D3E] tracking-tight mt-4 sm:mt-6 max-w-xl mx-auto lg:mx-0">
+    Share rides, reduce costs, and make new connections. Join our community of travelers making transportation more sustainable and social.
+  </p>
+  <div className="flex sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start items-center mt-6 sm:mt-8">
+    <Link
+      to="/register"
+      className="w-full sm:w-auto bg-black text-white px-6 py-3 rounded-lg font-medium inline-flex items-center justify-center tracking-tight hover:bg-opacity-90 transition-all"
+      aria-label="Get Started with GoTogether"
+    >
+      Get Started
+    </Link>
+    <Link
+      to="/login"
+      className="w-full sm:w-auto bg-transparent text-black px-6 py-3 rounded-lg font-medium inline-flex items-center justify-center tracking-tight gap-1 hover:bg-black/5 transition-all"
+      aria-label="Sign In to GoTogether"
+    >
+      <span>Sign In</span>
+      <FaArrowRight className="h-5 w-5" aria-hidden="true" />
+    </Link>
+  </div>
+</div>
