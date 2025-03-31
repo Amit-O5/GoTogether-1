@@ -144,7 +144,7 @@ export default function Navbar() {
             <div className="flex h-16 sm:h-16 md:h-16 justify-between items-center">
               {/* Logo section - takes left side on all screens */}
               <div className="flex items-center">
-                <Link to={isAuthenticated ? '/rides' : '/'} className="flex flex-shrink-0 items-center">
+                <Link to="/" className="flex flex-shrink-0 items-center">
                   <span className="text-xl sm:text-2xl font-bold text-primary">GoTogether</span>
                 </Link>
                 
