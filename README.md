@@ -149,9 +149,9 @@ src/
 ## 👥 Core Team
 
 - **Vipul Beniwal** - _Project Lead & Full Stack Developer_
-  - GitHub: [@vipulbeniwal01](https://github.com/vipulbeniwal01)
-  - LinkedIn: [Vipul Beniwal](https://www.linkedin.com/in/vipulbeniwal01)
-  - Email: vipulbeniwal01@gmail.com
+  - GitHub: [@Amit-O5](https://github.com/vipulbeniwal01)
+  - LinkedIn: [Amit Khtua](https://www.linkedin.com/in/vipulbeniwal01)
+  - Email: ak8285345@gmail.com
 
 - **Mohit Chaudhary** - _Frontend Lead Developer_
   - GitHub: [@m0hitchaudhary](https://github.com/m0hitchaudhary)
